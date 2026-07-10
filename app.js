@@ -251,6 +251,8 @@ document.addEventListener('pointermove',event=>{
   return;
  }
  event.preventDefault();
+ if(event.clientY<64)window.scrollBy(0,-18);
+ else if(event.clientY>window.innerHeight-64)window.scrollBy(0,18);
  positionTouchGhost(event);
 },{passive:false});
 

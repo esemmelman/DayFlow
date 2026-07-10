@@ -36,6 +36,8 @@ aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .add-slot{align-self:start;min-width:44px;padding:0}
 .slot{min-width:0;min-height:48px}
 .task[draggable="true"]{cursor:grab}
+.touch-drag-ghost{position:fixed;z-index:20;pointer-events:none;width:min(260px,70vw);margin:0;opacity:.9;transform:translate(-50%,-115%);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+body.touch-dragging{user-select:none}
 .appointments{display:flex;flex-direction:column;gap:6px;min-width:0;padding:6px 0}
 .appointments .task{margin:0}
 .modal[hidden]{display:none}
