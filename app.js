@@ -3,6 +3,7 @@
 // DayFlow v0.7
 
 const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
+document.body.classList.toggle('android',/Android/i.test(navigator.userAgent));
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
 let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
 let ignoreTaskClickUntil=0;
@@ -108,7 +109,7 @@ newTask.addEventListener('keydown',event=>{
 });
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
-todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);drawCal();renderSelectedDay();}
+todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);drawCal();renderSelectedDay();renderMobileAgenda();}
 for(let h=7;h<=20;h++){
  let r=document.createElement('div');
  r.className='hour';
@@ -125,6 +126,7 @@ for(let h=7;h<=20;h++){
 renderInbox();
 drawCal();
 renderSelectedDay();
+renderMobileAgenda();
 // v0.7 foundation: timeline drag/drop to be implemented from this codebase.
 
 
@@ -154,6 +156,95 @@ allDayDropZone.addEventListener('drop',event=>{
  finishScheduleMove();
 });
 
+function renderMobileAgenda(){
+ const agenda=document.getElementById('mobileAgenda');
+ if(!agenda)return;
+ agenda.replaceChildren();
+ const start=new Date();
+ start.setHours(0,0,0,0);
+ for(let offset=0;offset<10;offset++){
+  const date=new Date(start);
+  date.setDate(start.getDate()+offset);
+  const dateKey=key(date);
+  const day=document.createElement('section');
+  day.className='agenda-day';
+  day.dataset.date=dateKey;
+
+  const heading=document.createElement('h2');
+  heading.className='agenda-day-title';
+  heading.textContent=date.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  day.append(heading);
+
+  const allDayZone=document.createElement('div');
+  allDayZone.className='allday';
+  allDayZone.dataset.date=dateKey;
+  const allDayHeader=document.createElement('div');
+  allDayHeader.className='allday-header';
+  const allDayLabel=document.createElement('b');
+  allDayLabel.textContent='All Day';
+  const allDayAdd=document.createElement('button');
+  allDayAdd.type='button';
+  allDayAdd.textContent='+';
+  allDayAdd.setAttribute('aria-label',`Add all-day appointment on ${heading.textContent}`);
+  allDayAdd.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:null,allDay:true});
+  allDayHeader.append(allDayLabel,allDayAdd);
+  allDayZone.append(allDayHeader);
+  tasks.filter(task=>task.date===dateKey&&task.time==null).forEach(task=>{
+   allDayZone.append(createTaskElement(task,'div',true));
+  });
+  allDayZone.addEventListener('dragover',event=>event.preventDefault());
+  allDayZone.addEventListener('drop',event=>{
+   event.preventDefault();
+   const task=tasks.find(item=>item.id===event.dataTransfer.getData('id'));
+   if(!task)return;
+   task.date=dateKey;
+   task.time=null;
+   task.endTime=null;
+   finishScheduleMove();
+  });
+  day.append(allDayZone);
+
+  const timeline=document.createElement('div');
+  for(let hour=7;hour<=20;hour++){
+   const row=document.createElement('div');
+   row.className='hour';
+   row.dataset.date=dateKey;
+   const time=document.createElement('div');
+   time.className='time';
+   time.textContent=`${hour%12||12}:00 ${hour<12?'AM':'PM'}`;
+   const add=document.createElement('button');
+   add.type='button';
+   add.className='add-slot';
+   add.textContent='+';
+   add.setAttribute('aria-label',`Add appointment at ${time.textContent} on ${heading.textContent}`);
+   add.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:hour,allDay:false});
+   const slot=document.createElement('div');
+   slot.className='slot';
+   slot.dataset.date=dateKey;
+   slot.dataset.hour=String(hour);
+   const appointments=tasks.filter(task=>task.date===dateKey&&task.time!=null&&timeHour(task.time)===hour);
+   if(appointments.length){
+    const items=document.createElement('div');
+    items.className='appointments';
+    appointments.forEach(task=>items.append(createTaskElement(task,'div',true)));
+    slot.append(items);
+   }
+   slot.addEventListener('dragover',event=>event.preventDefault());
+   slot.addEventListener('drop',event=>{
+    event.preventDefault();
+    const task=tasks.find(item=>item.id===event.dataTransfer.getData('id'));
+    if(!task)return;
+    moveTaskToTime(task,dateKey,hour);
+    finishScheduleMove();
+   });
+   row.append(time,add,slot);
+   timeline.append(row);
+  }
+  day.append(timeline);
+  agenda.append(day);
+ }
+}
+
 function timeToMinutes(time){
  const [hour,minute]=toTimeValue(time).split(':').map(Number);
  return hour*60+minute;
@@ -179,6 +270,7 @@ function finishScheduleMove(){
  renderInbox();
  drawCal();
  renderSelectedDay();
+ renderMobileAgenda();
 }
 
 let touchDrag=null;
@@ -236,10 +328,10 @@ function endTouchDrag(event,shouldDrop){
     const allDayZone=target.closest('.allday');
     const day=target.closest('.day');
     if(slot){
-     moveTaskToTime(task,key(sel),Number(slot.dataset.hour));
+     moveTaskToTime(task,slot.dataset.date||key(sel),Number(slot.dataset.hour));
      finishScheduleMove();
     }else if(allDayZone){
-     task.date=key(sel);
+     task.date=allDayZone.dataset.date||key(sel);
      task.time=null;
      task.endTime=null;
      finishScheduleMove();
@@ -423,6 +515,7 @@ function refreshAppointments(){
  renderInbox();
  drawCal();
  renderSelectedDay();
+ renderMobileAgenda();
 }
 
 appointmentForm.addEventListener('submit',event=>{
