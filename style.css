@@ -85,3 +85,4 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "agenda";height:auto}
 .android .day-panel,.android .calendar-panel{display:none}
 .android .mobile-agenda-panel{display:block;padding:8px;border-right:0;overflow:visible}
+@media (max-width:599px) and (pointer:coarse){.day-panel,.calendar-panel{display:none}.mobile-agenda-panel{display:block;padding:8px;border-right:0;overflow:visible}}
