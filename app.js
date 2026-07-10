@@ -189,6 +189,29 @@ function positionTouchGhost(event){
  touchDrag.currentY=event.clientY;
  touchDrag.ghost.style.left=`${event.clientX}px`;
  touchDrag.ghost.style.top=`${event.clientY}px`;
+ updateTouchDropTarget();
+}
+
+function updateTouchDropTarget(){
+ if(!touchDrag?.active)return;
+ const target=document.elementFromPoint(touchDrag.currentX,touchDrag.currentY);
+ const dropTarget=target?.closest('.hour,.allday,.day')||null;
+ if(dropTarget===touchDrag.dropTarget)return;
+ touchDrag.dropTarget?.classList.remove('touch-drop-target');
+ touchDrag.dropTarget=dropTarget;
+ touchDrag.dropTarget?.classList.add('touch-drop-target');
+}
+
+function runTouchAutoScroll(){
+ if(!touchDrag?.active)return;
+ let scrollAmount=0;
+ if(touchDrag.currentY<72)scrollAmount=-12;
+ else if(touchDrag.currentY>window.innerHeight-72)scrollAmount=12;
+ if(scrollAmount){
+  window.scrollBy(0,scrollAmount);
+  updateTouchDropTarget();
+ }
+ touchDrag.scrollFrame=requestAnimationFrame(runTouchAutoScroll);
 }
 
 function endTouchDrag(event,shouldDrop){
@@ -197,6 +220,8 @@ function endTouchDrag(event,shouldDrop){
  const drag=touchDrag;
  touchDrag=null;
  if(drag.active){
+  cancelAnimationFrame(drag.scrollFrame);
+  drag.dropTarget?.classList.remove('touch-drop-target');
   ignoreTaskClickUntil=Date.now()+500;
   drag.ghost.remove();
   document.body.classList.remove('touch-dragging');
@@ -235,7 +260,7 @@ document.addEventListener('pointerdown',event=>{
  const taskElement=event.target.closest('.task[draggable="true"]');
  if(!taskElement)return;
  const startX=event.clientX,startY=event.clientY;
- touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,currentX:startX,currentY:startY,active:false,ghost:null,timer:null};
+ touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,currentX:startX,currentY:startY,active:false,ghost:null,dropTarget:null,scrollFrame:null,timer:null};
  const taskId=taskElement.closest('[data-task-id]')?.dataset.taskId;
  touchDrag.taskId=taskId;
  touchDrag.timer=setTimeout(()=>{
@@ -246,6 +271,7 @@ document.addEventListener('pointerdown',event=>{
   document.body.append(touchDrag.ghost);
   document.body.classList.add('touch-dragging');
   positionTouchGhost(event);
+  touchDrag.scrollFrame=requestAnimationFrame(runTouchAutoScroll);
  },350);
 });
 
@@ -261,8 +287,6 @@ document.addEventListener('pointermove',event=>{
  event.preventDefault();
  touchDrag.currentX=event.clientX;
  touchDrag.currentY=event.clientY;
- if(event.clientY<64)window.scrollBy(0,-18);
- else if(event.clientY>window.innerHeight-64)window.scrollBy(0,18);
  positionTouchGhost(event);
 },{passive:false});
 
