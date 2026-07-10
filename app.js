@@ -5,6 +5,7 @@
 const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
 let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
+let ignoreTaskClickUntil=0;
 
 function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
@@ -13,6 +14,7 @@ function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 function createTaskElement(task,tagName='div',draggable=false){
  const element=document.createElement(tagName);
  element.className=`task${task.date?' appointment':''}`;
+ element.dataset.taskId=task.id;
  const title=document.createElement('span');
  title.textContent=task.title;
  element.append(title);
@@ -25,7 +27,9 @@ function createTaskElement(task,tagName='div',draggable=false){
  element.style.setProperty('--appointment-color',task.color||(task.date?'#2f80ed':'#ccd5df'));
  element.tabIndex=0;
  element.setAttribute('role','button');
- element.onclick=()=>openAppointmentEditor(task);
+ element.onclick=()=>{
+  if(Date.now()>=ignoreTaskClickUntil)openAppointmentEditor(task);
+ };
  element.onkeydown=event=>{
   if(event.key==='Enter'||event.key===' '){event.preventDefault();openAppointmentEditor(task);}
  };
@@ -67,6 +71,7 @@ function drawCal(){
  for(let i=0;i<first;i++)calendar.append(document.createElement('div'));
  for(let d=1;d<=days;d++){
    let c=document.createElement('div');c.className='day';
+   c.dataset.date=`${y}-${m+1}-${d}`;
    if(sel.getFullYear()==y&&sel.getMonth()==m&&sel.getDate()==d)c.classList.add('selected');
    c.innerHTML="<b>"+d+"</b>";
    let k=`${y}-${m+1}-${d}`;
@@ -173,6 +178,87 @@ function finishScheduleMove(){
  drawCal();
  renderSelectedDay();
 }
+
+let touchDrag=null;
+
+function positionTouchGhost(event){
+ if(!touchDrag?.ghost)return;
+ touchDrag.ghost.style.left=`${event.clientX}px`;
+ touchDrag.ghost.style.top=`${event.clientY}px`;
+}
+
+function endTouchDrag(event,shouldDrop){
+ if(!touchDrag||event.pointerId!==touchDrag.pointerId)return;
+ clearTimeout(touchDrag.timer);
+ const drag=touchDrag;
+ touchDrag=null;
+ if(drag.active){
+  ignoreTaskClickUntil=Date.now()+500;
+  drag.ghost.remove();
+  document.body.classList.remove('touch-dragging');
+  if(shouldDrop){
+   const target=document.elementFromPoint(event.clientX,event.clientY);
+   const task=tasks.find(item=>item.id===drag.taskId);
+   if(task&&target){
+    const slot=target.closest('.slot');
+    const allDayZone=target.closest('.allday');
+    const day=target.closest('.day');
+    if(slot){
+     moveTaskToTime(task,key(sel),Number(slot.dataset.hour));
+     finishScheduleMove();
+    }else if(allDayZone){
+     task.date=key(sel);
+     task.time=null;
+     task.endTime=null;
+     finishScheduleMove();
+    }else if(day?.dataset.date){
+     task.date=day.dataset.date;
+     const [year,month,date]=day.dataset.date.split('-').map(Number);
+     sel=new Date(year,month-1,date);
+     finishScheduleMove();
+    }
+   }
+  }
+ }
+}
+
+document.addEventListener('pointerdown',event=>{
+ if(event.pointerType==='mouse'||event.button!==0)return;
+ const taskElement=event.target.closest('.task[draggable="true"]');
+ if(!taskElement)return;
+ const startX=event.clientX,startY=event.clientY;
+ touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,active:false,ghost:null,timer:null};
+ const taskId=taskElement.closest('[data-task-id]')?.dataset.taskId;
+ touchDrag.taskId=taskId;
+ touchDrag.timer=setTimeout(()=>{
+  if(!touchDrag||touchDrag.pointerId!==event.pointerId)return;
+  touchDrag.active=true;
+  touchDrag.ghost=taskElement.cloneNode(true);
+  touchDrag.ghost.classList.add('touch-drag-ghost');
+  document.body.append(touchDrag.ghost);
+  document.body.classList.add('touch-dragging');
+  positionTouchGhost(event);
+ },350);
+});
+
+document.addEventListener('pointermove',event=>{
+ if(!touchDrag||event.pointerId!==touchDrag.pointerId)return;
+ if(!touchDrag.active){
+  if(Math.hypot(event.clientX-touchDrag.startX,event.clientY-touchDrag.startY)>10){
+   clearTimeout(touchDrag.timer);
+   touchDrag=null;
+  }
+  return;
+ }
+ event.preventDefault();
+ positionTouchGhost(event);
+},{passive:false});
+
+document.addEventListener('pointerup',event=>endTouchDrag(event,true));
+document.addEventListener('pointercancel',event=>endTouchDrag(event,false));
+document.addEventListener('contextmenu',event=>{
+ if(touchDrag?.active&&event.target.closest('.task'))event.preventDefault();
+});
 
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
