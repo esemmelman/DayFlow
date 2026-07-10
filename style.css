@@ -6,6 +6,7 @@ button{min-height:48px;padding:8px 12px;background:#2f80ed;color:#fff;border:0;b
 button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:focus-visible{outline:3px solid #1c64c8;outline-offset:2px}
 .toolbar{min-height:56px;background:#fff;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
 .logo{font-size:28px;font-weight:700}
+.version{font-size:.5em;font-weight:600;color:#52606d;vertical-align:middle}
 .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "day" "calendar"}
 .inbox-panel{grid-area:inbox}
 .day-panel{grid-area:day}
