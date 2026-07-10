@@ -13,7 +13,15 @@ function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 function createTaskElement(task,tagName='div',draggable=false){
  const element=document.createElement(tagName);
  element.className=`task${task.date?' appointment':''}`;
- element.textContent=task.title;
+ const title=document.createElement('span');
+ title.textContent=task.title;
+ element.append(title);
+ if(task.date&&task.time!==null&&task.time!==undefined){
+  const time=document.createElement('span');
+  time.className='task-time';
+  time.textContent=formatTimeRange(task.time,task.endTime);
+  element.append(time);
+ }
  element.style.setProperty('--appointment-color',task.color||(task.date?'#2f80ed':'#ccd5df'));
  element.tabIndex=0;
  element.setAttribute('role','button');
@@ -127,7 +135,7 @@ document.querySelectorAll('.slot').forEach(slot=>{
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
  tasks.filter(x=>x.date===key(sel)&&x.time!=null).forEach(task=>{
-   const slot=document.querySelector(`.slot[data-hour="${task.time}"]`);
+   const slot=document.querySelector(`.slot[data-hour="${timeHour(task.time)}"]`);
    if(slot){
       let items = slot.querySelector(".appointments");
 
@@ -187,9 +195,30 @@ function toDateKey(dateValue){
  return `${year}-${month}-${day}`;
 }
 
-function toTimeValue(hour){
- if(hour===null||hour===undefined)return '';
- return `${String(hour).padStart(2,'0')}:00`;
+function toTimeValue(time){
+ if(time===null||time===undefined)return '';
+ if(typeof time==='number')return `${String(time).padStart(2,'0')}:00`;
+ return time;
+}
+
+function timeHour(time){
+ return Number(toTimeValue(time).slice(0,2));
+}
+
+function formatTime(time){
+ const [hour,minute]=toTimeValue(time).split(':').map(Number);
+ return `${hour%12||12}:${String(minute).padStart(2,'0')} ${hour<12?'AM':'PM'}`;
+}
+
+function formatTimeRange(start,end){
+ return end?`${formatTime(start)}–${formatTime(end)}`:formatTime(start);
+}
+
+function defaultEndTime(start){
+ const value=toTimeValue(start);
+ if(!value)return '';
+ const [hour,minute]=value.split(':').map(Number);
+ return `${String(Math.min(23,hour+1)).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
 }
 
 function updateEditorTimeFields(){
@@ -207,7 +236,7 @@ function openAppointmentEditor(task=null,defaults={}){
  editorDate.value=toDateInput(task?.date??defaults.date??null);
  editorAllDay.checked=task?Boolean(task.date)&&task.time===null:Boolean(defaults.allDay);
  editorStartTime.value=toTimeValue(selectedTime);
- editorEndTime.value=task?.endTime??defaults.endTime??(selectedTime===null?'':toTimeValue(Math.min(23,selectedTime+1)));
+ editorEndTime.value=task?.endTime??defaults.endTime??defaultEndTime(selectedTime);
  editorNotes.value=task?.notes??'';
  editorColor.value=task?.color??'#2f80ed';
  editorDelete.hidden=!task;
@@ -238,16 +267,14 @@ appointmentForm.addEventListener('submit',event=>{
  const date=toDateKey(editorDate.value);
  const isAllDay=editorAllDay.checked;
  const start=editorStartTime.value;
- const hour=start?Number(start.slice(0,2)):null;
 
  if(!title){editorError.textContent='Title is required.';return;}
  if(date&&!isAllDay&&!start){editorError.textContent='Choose a start time or mark this appointment all day.';return;}
- if(date&&!isAllDay&&start.slice(3)!=='00'){editorError.textContent='Start times must be on the hour.';return;}
 
  const appointment={
   title,
   date,
-  time:date&&!isAllDay?hour:null,
+  time:date&&!isAllDay?start:null,
   endTime:date&&!isAllDay?editorEndTime.value:null,
   notes:editorNotes.value.trim(),
   color:editorColor.value

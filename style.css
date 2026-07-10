@@ -15,6 +15,9 @@ aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .new{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
 .new input{min-width:0;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
 .task{background:#f7f9fb;border:1px solid #ccd5df;border-radius:6px;padding:10px 8px;margin:6px 0;cursor:pointer;touch-action:manipulation}
+.appointment{display:flex;justify-content:flex-start;gap:8px;align-items:baseline}
+.appointment>span:first-child{min-width:0;overflow-wrap:anywhere}
+.task-time{flex:0 0 auto;white-space:nowrap;font-size:.85em;color:#52606d;font-weight:600}
 #inbox{list-style:none;padding:0}
 #inbox .task,.appointment{border-left:4px solid var(--appointment-color,#ccd5df)}
 .monthbar{display:flex;justify-content:space-between;gap:8px;align-items:center}
@@ -48,6 +51,8 @@ aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .editor-check{display:flex;gap:8px;align-items:center;min-height:48px;margin:12px 0}
 .editor-check input{width:20px;height:20px;flex:0 0 auto}
 .editor-times{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.editor-times>*{min-width:0}
+.editor-times input[type="time"]{min-width:0;max-width:100%}
 .editor-actions{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;margin-top:16px}
 .danger{background:#c0392b}
 .editor-error{min-height:1.2em;margin:8px 0 0;color:#c0392b}
