@@ -183,6 +183,8 @@ let touchDrag=null;
 
 function positionTouchGhost(event){
  if(!touchDrag?.ghost)return;
+ touchDrag.currentX=event.clientX;
+ touchDrag.currentY=event.clientY;
  touchDrag.ghost.style.left=`${event.clientX}px`;
  touchDrag.ghost.style.top=`${event.clientY}px`;
 }
@@ -197,10 +199,13 @@ function endTouchDrag(event,shouldDrop){
   drag.ghost.remove();
   document.body.classList.remove('touch-dragging');
   if(shouldDrop){
-   const target=document.elementFromPoint(event.clientX,event.clientY);
+   const x=event.clientX??drag.currentX;
+   const y=event.clientY??drag.currentY;
+   const target=document.elementFromPoint(x,y);
    const task=tasks.find(item=>item.id===drag.taskId);
    if(task&&target){
-    const slot=target.closest('.slot');
+    const hour=target.closest('.hour');
+    const slot=target.closest('.slot')||hour?.querySelector('.slot');
     const allDayZone=target.closest('.allday');
     const day=target.closest('.day');
     if(slot){
@@ -227,7 +232,7 @@ document.addEventListener('pointerdown',event=>{
  const taskElement=event.target.closest('.task[draggable="true"]');
  if(!taskElement)return;
  const startX=event.clientX,startY=event.clientY;
- touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,active:false,ghost:null,timer:null};
+ touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,currentX:startX,currentY:startY,active:false,ghost:null,timer:null};
  const taskId=taskElement.closest('[data-task-id]')?.dataset.taskId;
  touchDrag.taskId=taskId;
  touchDrag.timer=setTimeout(()=>{
@@ -251,6 +256,8 @@ document.addEventListener('pointermove',event=>{
   return;
  }
  event.preventDefault();
+ touchDrag.currentX=event.clientX;
+ touchDrag.currentY=event.clientY;
  if(event.clientY<64)window.scrollBy(0,-18);
  else if(event.clientY>window.innerHeight-64)window.scrollBy(0,18);
  positionTouchGhost(event);
