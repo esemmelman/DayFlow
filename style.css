@@ -7,6 +7,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .toolbar{min-height:56px;background:#fff;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
 .logo{font-size:28px;font-weight:700}
 .version{font-size:.5em;font-weight:600;color:#52606d;vertical-align:middle}
+.android-nav,.android-add-form{display:none}
+.android-panel{background:#fff;border-bottom:1px solid #ddd;padding:10px}
+.android-panel[hidden]{display:none}
 .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "day" "calendar" "agenda"}
 .inbox-panel{grid-area:inbox}
 .day-panel{grid-area:day}
@@ -83,6 +86,20 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .task[draggable="true"]{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 }
 .android .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "agenda";height:auto}
+.android .toolbar{padding:4px 8px}
+.android .logo,.android .desktop-actions{display:none}
+.android .android-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.android .android-add-form{display:block;width:100%}
+.android .android-add-form[hidden],.android .android-nav[hidden]{display:none}
+.android .android-add-form input{width:100%;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
+.android .android-panel{display:block}
+.android .android-panel[hidden]{display:none}
+.android .inbox-panel .new{display:none}
 .android .day-panel,.android .calendar-panel{display:none}
 .android .mobile-agenda-panel{display:block;padding:8px;border-right:0;overflow:visible}
+.android-calendar-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.android-calendar-header h2{margin:0;font-size:1.2rem}
+.android-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
+.android-calendar-grid button{min-width:0;padding:4px}
+.android-about{text-align:center;font-weight:700;padding:12px}
 @media (max-width:599px) and (pointer:coarse){.day-panel,.calendar-panel{display:none}.mobile-agenda-panel{display:block;padding:8px;border-right:0;overflow:visible}}

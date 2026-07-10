@@ -3,8 +3,11 @@
 // DayFlow v0.7
 
 const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
-document.body.classList.toggle('android',/Android/i.test(navigator.userAgent));
+const usesAndroidAgenda=/Android/i.test(navigator.userAgent)||matchMedia('(max-width:599px) and (pointer:coarse)').matches;
+document.body.classList.toggle('android',usesAndroidAgenda);
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
+let mobileAgendaStart=new Date(t);
+mobileAgendaStart.setHours(0,0,0,0);
 let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
 let ignoreTaskClickUntil=0;
 let lastTouchPointerDown=0;
@@ -107,9 +110,100 @@ addBtn.onclick=addInboxTask;
 newTask.addEventListener('keydown',event=>{
  if(event.key==='Enter'){event.preventDefault();addInboxTask();}
 });
+const androidNav=document.getElementById('androidNav');
+const androidAdd=document.getElementById('androidAdd');
+const androidCal=document.getElementById('androidCal');
+const androidAbout=document.getElementById('androidAbout');
+const androidAddForm=document.getElementById('androidAddForm');
+const androidNewTask=document.getElementById('androidNewTask');
+const androidPanel=document.getElementById('androidPanel');
+let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
+
+function closeAndroidPanel(){
+ androidPanel.hidden=true;
+ androidPanel.replaceChildren();
+}
+
+function showAndroidButtons(){
+ androidAddForm.hidden=true;
+ androidNav.hidden=false;
+}
+
+androidAdd.onclick=()=>{
+ closeAndroidPanel();
+ androidNav.hidden=true;
+ androidAddForm.hidden=false;
+ androidNewTask.focus();
+};
+
+androidAddForm.addEventListener('submit',event=>{
+ event.preventDefault();
+ const title=androidNewTask.value.trim();
+ if(!title)return;
+ newTask.value=title;
+ addInboxTask();
+ androidNewTask.value='';
+ androidNewTask.blur();
+ showAndroidButtons();
+});
+
+function renderAndroidCalendar(){
+ androidPanel.hidden=false;
+ androidPanel.replaceChildren();
+ const header=document.createElement('div');
+ header.className='android-calendar-header';
+ const previous=document.createElement('button');
+ previous.type='button';
+ previous.textContent='<';
+ const title=document.createElement('h2');
+ title.textContent=androidPickerMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+ const next=document.createElement('button');
+ next.type='button';
+ next.textContent='>';
+ previous.onclick=()=>{androidPickerMonth.setMonth(androidPickerMonth.getMonth()-1);renderAndroidCalendar();};
+ next.onclick=()=>{androidPickerMonth.setMonth(androidPickerMonth.getMonth()+1);renderAndroidCalendar();};
+ header.append(previous,title,next);
+ const grid=document.createElement('div');
+ grid.className='android-calendar-grid';
+ ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(label=>{
+  const weekday=document.createElement('b');
+  weekday.textContent=label;
+  grid.append(weekday);
+ });
+ const year=androidPickerMonth.getFullYear();
+ const month=androidPickerMonth.getMonth();
+ const firstWeekday=new Date(year,month,1).getDay();
+ for(let blank=0;blank<firstWeekday;blank++)grid.append(document.createElement('span'));
+ const days=new Date(year,month+1,0).getDate();
+ for(let date=1;date<=days;date++){
+  const button=document.createElement('button');
+  button.type='button';
+  button.textContent=String(date);
+  button.onclick=()=>{
+   mobileAgendaStart=new Date(year,month,date);
+   closeAndroidPanel();
+   renderMobileAgenda();
+   document.getElementById('mobileAgenda').scrollIntoView({block:'start'});
+  };
+  grid.append(button);
+ }
+ androidPanel.append(header,grid);
+}
+
+androidCal.onclick=()=>{
+ if(!androidPanel.hidden&&androidPanel.querySelector('.android-calendar-grid')){closeAndroidPanel();return;}
+ androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
+ renderAndroidCalendar();
+};
+
+androidAbout.onclick=()=>{
+ if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
+ androidPanel.hidden=false;
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m11</div>';
+};
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
-todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);drawCal();renderSelectedDay();renderMobileAgenda();}
+todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);mobileAgendaStart=new Date(t);mobileAgendaStart.setHours(0,0,0,0);drawCal();renderSelectedDay();renderMobileAgenda();}
 for(let h=7;h<=20;h++){
  let r=document.createElement('div');
  r.className='hour';
@@ -160,8 +254,7 @@ function renderMobileAgenda(){
  const agenda=document.getElementById('mobileAgenda');
  if(!agenda)return;
  agenda.replaceChildren();
- const start=new Date();
- start.setHours(0,0,0,0);
+ const start=new Date(mobileAgendaStart);
  for(let offset=0;offset<10;offset++){
   const date=new Date(start);
   date.setDate(start.getDate()+offset);
