@@ -31,6 +31,12 @@ function renderAllDay(){
  });
 }
 
+function renderSelectedDay(){
+ dayTitle.textContent=sel.toDateString();
+ renderAllDay();
+ renderTimeline();
+}
+
 function drawCal(){
  monthTitle.textContent=new Date(y,m).toLocaleString('default',{month:'long',year:'numeric'});
  calendar.innerHTML='';
@@ -43,7 +49,7 @@ function drawCal(){
    c.innerHTML="<b>"+d+"</b>";
    let k=`${y}-${m+1}-${d}`;
    if(tasks.some(x=>x.date===k)){let dot=document.createElement('div');dot.className='dot';c.append(dot);}
-   c.onclick=()=>{sel=new Date(y,m,d);dayTitle.textContent=sel.toDateString();drawCal();renderAllDay();}
+   c.onclick=()=>{sel=new Date(y,m,d);drawCal();renderSelectedDay();}
    c.ondragover=e=>e.preventDefault();
    c.ondrop=e=>{
       e.preventDefault();
@@ -53,11 +59,10 @@ function drawCal(){
         task.date=k;
         task.time=null;
         sel=new Date(y,m,d);
-        dayTitle.textContent=sel.toDateString();
         save();
         renderInbox();
         drawCal();
-        renderAllDay();
+        renderSelectedDay();
       }
    };
    calendar.append(c);
@@ -71,15 +76,28 @@ addBtn.onclick=()=>{
 }
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
-todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);dayTitle.textContent=sel.toDateString();drawCal();renderAllDay();}
-for(let h=7;h<=20;h++){let r=document.createElement('div');r.className='hour';r.innerHTML=`<div class=time>${((h%12)||12)}:00 ${h<12?'AM':'PM'}</div><div class=slot></div>`;timeline.append(r);}
-todayBtn.click();renderInbox();
-
+todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);drawCal();renderSelectedDay();}
+for(let h=7;h<=20;h++){
+ let r=document.createElement('div');
+ r.className='hour';
+ let time=document.createElement('div');
+ time.className='time';
+ time.textContent=`${((h%12)||12)}:00 ${h<12?'AM':'PM'}`;
+ let slot=document.createElement('div');
+ slot.className='slot';
+ slot.dataset.hour=String(h);
+ let addButton=addSlotButton(slot);
+ r.append(time,addButton,slot);
+ timeline.append(r);
+}
+renderInbox();
+drawCal();
+renderSelectedDay();
 // v0.7 foundation: timeline drag/drop to be implemented from this codebase.
 
 
 // v0.7 milestone: timeline drop targets
-document.querySelectorAll('.slot').forEach((slot,idx)=>{
+document.querySelectorAll('.slot').forEach(slot=>{
   slot.addEventListener('dragover',e=>e.preventDefault());
   slot.addEventListener('drop',e=>{
     e.preventDefault();
@@ -87,68 +105,67 @@ document.querySelectorAll('.slot').forEach((slot,idx)=>{
     const task=tasks.find(t=>t.id===id);
     if(task){
       task.date=key(sel);
-      task.time=idx+7;
+      task.time=Number(slot.dataset.hour);
       save();
       renderInbox();
-      renderTimeline();
-      renderAllDay();
       drawCal();
+      renderSelectedDay();
     }
   });
 });
 
 function renderTimeline(){
- document.querySelectorAll('.slot').forEach(s=>s.innerHTML='');
+ document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
  tasks.filter(x=>x.date===key(sel)&&x.time!=null).forEach(task=>{
-   const slot=document.querySelectorAll('.slot')[task.time-7];
+   const slot=document.querySelector(`.slot[data-hour="${task.time}"]`);
    if(slot){
-      const d=document.createElement('div');
-      d.className='task';
-      d.textContent=task.title;
-      slot.appendChild(d);
+      let items = slot.querySelector(".appointments");
+
+if (!items) {
+    items = document.createElement("div");
+    items.className = "appointments";
+    slot.appendChild(items);
+}
+
+const d = document.createElement("div");
+d.className = "task";
+d.textContent = task.title;
+items.appendChild(d);
    }
  });
 }
-const _oldRenderAllDay=renderAllDay;
-renderAllDay=function(){_oldRenderAllDay();renderTimeline();}
 
 // v0.7-m2 milestone
 
 function addScheduled(time){
  const title=prompt("Title");
  if(!title)return;
- tasks.push({id:String(Date.now()+Math.random()),title:title,date:key(sel),time:time});
+ const hour=time===null?null:Number(time);
+ if(hour!==null&&!Number.isInteger(hour))return;
+
+tasks.push({
+    id:String(Date.now()+Math.random()),
+    title:title,
+    date:key(sel),
+    time:hour
+});
  save();
  renderInbox();
- renderAllDay();
+ drawCal();
+ renderSelectedDay();
 }
-window.addEventListener('load',()=>{
- const b=document.getElementById('addAllDay');
- if(b)b.onclick=()=>addScheduled(null);
- document.querySelectorAll('.slot').forEach((s,i)=>{
-   const btn=document.createElement('button');
-   btn.textContent='+';
-   btn.style.margin='4px';
-   btn.onclick=()=>addScheduled(i+7);
-   s.prepend(btn);
- });
-});
 
-
-function rebuildPlusButtons(){
- const ad=document.getElementById('addAllDay');
- if(ad) ad.onclick=()=>addScheduled(null);
- document.querySelectorAll('.slot').forEach((s,i)=>{
-   if(!s.querySelector('button')){
-      const btn=document.createElement('button');
-      btn.textContent='+';
-      btn.style.margin='4px';
-      btn.onclick=()=>addScheduled(i+7);
-      s.prepend(btn);
-   }
- });
+function addSlotButton(slot){
+ const btn=document.createElement('button');
+ btn.type='button';
+ btn.className='add-slot';
+ btn.textContent='+';
+ btn.onclick=()=>{
+  const clickedHour=Number(slot.dataset.hour);
+  addScheduled(clickedHour);
+ };
+ return btn;
 }
-const __rt=renderTimeline;
-renderTimeline=function(){__rt();rebuildPlusButtons();}
-const __ra=renderAllDay;
-renderAllDay=function(){__ra();renderTimeline();}
+
+const allDayButton=document.getElementById('addAllDay');
+if(allDayButton)allDayButton.onclick=()=>addScheduled(null);

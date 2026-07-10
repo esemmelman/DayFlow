@@ -8,4 +8,4 @@ aside,section{background:#fff;padding:14px;border-right:1px solid #ddd;overflow:
 #calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.dow,.day{text-align:center;padding:8px}.dow{font-weight:700;background:#f0f3f7}
 .day{min-height:54px;border:1px solid #ddd;position:relative}.day.selected{outline:2px solid #2f80ed}.dot{width:7px;height:7px;border-radius:50%;background:#2f80ed;position:absolute;bottom:5px;left:50%;transform:translateX(-50%)}
 .allday{border:1px solid #ddd;border-radius:6px;padding:8px;margin-bottom:10px;min-height:56px}
-.hour{display:flex;height:44px;border-bottom:1px solid #eee}.time{width:90px;white-space:nowrap;padding:12px 8px;border-right:1px solid #eee;font-weight:600}.slot{flex:1}
+.hour{display:grid;grid-template-columns:90px 44px 1fr;align-items:start;border-bottom:1px solid #eee}.time{align-self:start;white-space:nowrap;padding:12px 8px;border-right:1px solid #eee;font-weight:600}.add-slot{align-self:start;margin:4px;padding:8px 12px}.slot{min-width:0}.appointments{display:flex;flex-direction:column;gap:6px;min-width:0;padding:6px 0}.appointments .task{margin:0}
