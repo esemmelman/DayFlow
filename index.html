@@ -20,9 +20,23 @@
 
 <section>
 <h2 id="dayTitle"></h2>
-<div class='allday'><div style='display:flex;justify-content:space-between'><b>All Day</b><button id='addAllDay'>+</button></div><div id='allDay'></div></div>
+<div class='allday'><div class="allday-header"><b>All Day</b><button id='addAllDay' aria-label="Add all-day appointment">+</button></div><div id='allDay'></div></div>
 <div id="timeline"></div>
 </section>
+</div>
+<div id="appointmentEditor" class="modal" hidden>
+<div class="modal-backdrop" data-editor-cancel></div>
+<form id="appointmentForm" class="appointment-editor" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+<div class="editor-header"><h2 id="editorTitle">Appointment</h2><button type="button" class="editor-close" data-editor-cancel aria-label="Close">×</button></div>
+<label class="editor-field">Title<input id="editorTaskTitle" required></label>
+<label class="editor-field">Date<input id="editorDate" type="date"></label>
+<label class="editor-check"><input id="editorAllDay" type="checkbox">All Day</label>
+<div class="editor-times"><label class="editor-field">Start Time<input id="editorStartTime" type="time" step="3600"></label><label class="editor-field">End Time<input id="editorEndTime" type="time" step="3600"></label></div>
+<label class="editor-field">Notes<textarea id="editorNotes" rows="4"></textarea></label>
+<label class="editor-field">Color<input id="editorColor" type="color" value="#2f80ed"></label>
+<p id="editorError" class="editor-error" aria-live="polite"></p>
+<div class="editor-actions"><button id="editorDelete" type="button" class="danger" hidden>Delete</button><span></span><button type="button" data-editor-cancel>Cancel</button><button type="submit">Save</button></div>
+</form>
 </div>
 <script src="app.js"></script>
 </body></html>

@@ -4,30 +4,41 @@
 
 const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
+let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
 
 function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
+function createTaskElement(task,tagName='div',draggable=false){
+ const element=document.createElement(tagName);
+ element.className=`task${task.date?' appointment':''}`;
+ element.textContent=task.title;
+ element.style.setProperty('--appointment-color',task.color||(task.date?'#2f80ed':'#ccd5df'));
+ element.tabIndex=0;
+ element.setAttribute('role','button');
+ element.onclick=()=>openAppointmentEditor(task);
+ element.onkeydown=event=>{
+  if(event.key==='Enter'||event.key===' '){event.preventDefault();openAppointmentEditor(task);}
+ };
+ if(draggable){
+  element.draggable=true;
+  element.ondragstart=event=>event.dataTransfer.setData('id',task.id);
+ }
+ return element;
+}
+
 function renderInbox(){
  inbox.innerHTML='';
  tasks.filter(x=>!x.date).forEach(x=>{
-  let li=document.createElement('li');
-  li.className='task';
-  li.textContent=x.title;
-  li.draggable=true;
-  li.ondragstart=e=>e.dataTransfer.setData('id',x.id);
-  inbox.append(li);
+  inbox.append(createTaskElement(x,'li',true));
  });
 }
 
 function renderAllDay(){
  allDay.innerHTML='';
  tasks.filter(x=>x.date===key(sel)&&!x.time).forEach(x=>{
-   let d=document.createElement('div');
-   d.className='task';
-   d.textContent=x.title;
-   allDay.append(d);
+   allDay.append(createTaskElement(x));
  });
 }
 
@@ -69,10 +80,9 @@ function drawCal(){
  }
 }
 addBtn.onclick=()=>{
- if(!newTask.value.trim())return;
- tasks.push({id:String(Date.now()+Math.random()),title:newTask.value.trim(),date:null,time:null});
- newTask.value='';
- save();renderInbox();drawCal();
+ const title=newTask.value.trim();
+ if(!title)return;
+ openAppointmentEditor(null,{title,clearInbox:true});
 }
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -127,10 +137,7 @@ if (!items) {
     slot.appendChild(items);
 }
 
-const d = document.createElement("div");
-d.className = "task";
-d.textContent = task.title;
-items.appendChild(d);
+items.appendChild(createTaskElement(task));
    }
  });
 }
@@ -138,21 +145,7 @@ items.appendChild(d);
 // v0.7-m2 milestone
 
 function addScheduled(time){
- const title=prompt("Title");
- if(!title)return;
- const hour=time===null?null:Number(time);
- if(hour!==null&&!Number.isInteger(hour))return;
-
-tasks.push({
-    id:String(Date.now()+Math.random()),
-    title:title,
-    date:key(sel),
-    time:hour
-});
- save();
- renderInbox();
- drawCal();
- renderSelectedDay();
+ openAppointmentEditor(null,{date:key(sel),time,allDay:time===null});
 }
 
 function addSlotButton(slot){
@@ -169,3 +162,115 @@ function addSlotButton(slot){
 
 const allDayButton=document.getElementById('addAllDay');
 if(allDayButton)allDayButton.onclick=()=>addScheduled(null);
+
+const appointmentEditor=document.getElementById('appointmentEditor');
+const appointmentForm=document.getElementById('appointmentForm');
+const editorTaskTitle=document.getElementById('editorTaskTitle');
+const editorDate=document.getElementById('editorDate');
+const editorAllDay=document.getElementById('editorAllDay');
+const editorStartTime=document.getElementById('editorStartTime');
+const editorEndTime=document.getElementById('editorEndTime');
+const editorNotes=document.getElementById('editorNotes');
+const editorColor=document.getElementById('editorColor');
+const editorDelete=document.getElementById('editorDelete');
+const editorError=document.getElementById('editorError');
+
+function toDateInput(dateValue){
+ if(!dateValue)return '';
+ const [year,month,day]=dateValue.split('-');
+ return `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
+}
+
+function toDateKey(dateValue){
+ if(!dateValue)return null;
+ const [year,month,day]=dateValue.split('-').map(Number);
+ return `${year}-${month}-${day}`;
+}
+
+function toTimeValue(hour){
+ if(hour===null||hour===undefined)return '';
+ return `${String(hour).padStart(2,'0')}:00`;
+}
+
+function updateEditorTimeFields(){
+ const disabled=editorAllDay.checked||!editorDate.value;
+ editorStartTime.disabled=disabled;
+ editorEndTime.disabled=disabled;
+}
+
+function openAppointmentEditor(task=null,defaults={}){
+ editorReturnFocus=document.activeElement;
+ editingAppointmentId=task?.id||null;
+ clearInboxAfterSave=Boolean(defaults.clearInbox);
+ const selectedTime=task?.time??defaults.time??null;
+ editorTaskTitle.value=task?.title??defaults.title??'';
+ editorDate.value=toDateInput(task?.date??defaults.date??null);
+ editorAllDay.checked=task?Boolean(task.date)&&task.time===null:Boolean(defaults.allDay);
+ editorStartTime.value=toTimeValue(selectedTime);
+ editorEndTime.value=task?.endTime??defaults.endTime??(selectedTime===null?'':toTimeValue(Math.min(23,selectedTime+1)));
+ editorNotes.value=task?.notes??'';
+ editorColor.value=task?.color??'#2f80ed';
+ editorDelete.hidden=!task;
+ editorError.textContent='';
+ updateEditorTimeFields();
+ appointmentEditor.hidden=false;
+ editorTaskTitle.focus();
+}
+
+function closeAppointmentEditor(){
+ appointmentEditor.hidden=true;
+ editingAppointmentId=null;
+ clearInboxAfterSave=false;
+ if(editorReturnFocus&&typeof editorReturnFocus.focus==='function')editorReturnFocus.focus();
+ editorReturnFocus=null;
+}
+
+function refreshAppointments(){
+ save();
+ renderInbox();
+ drawCal();
+ renderSelectedDay();
+}
+
+appointmentForm.addEventListener('submit',event=>{
+ event.preventDefault();
+ const title=editorTaskTitle.value.trim();
+ const date=toDateKey(editorDate.value);
+ const isAllDay=editorAllDay.checked;
+ const start=editorStartTime.value;
+ const hour=start?Number(start.slice(0,2)):null;
+
+ if(!title){editorError.textContent='Title is required.';return;}
+ if(date&&!isAllDay&&!start){editorError.textContent='Choose a start time or mark this appointment all day.';return;}
+ if(date&&!isAllDay&&start.slice(3)!=='00'){editorError.textContent='Start times must be on the hour.';return;}
+
+ const appointment={
+  title,
+  date,
+  time:date&&!isAllDay?hour:null,
+  endTime:date&&!isAllDay?editorEndTime.value:null,
+  notes:editorNotes.value.trim(),
+  color:editorColor.value
+ };
+ const existing=tasks.find(task=>task.id===editingAppointmentId);
+ if(existing)Object.assign(existing,appointment);
+ else tasks.push({id:String(Date.now()+Math.random()),...appointment});
+ if(clearInboxAfterSave)newTask.value='';
+ closeAppointmentEditor();
+ refreshAppointments();
+});
+
+editorDelete.onclick=()=>{
+ const index=tasks.findIndex(task=>task.id===editingAppointmentId);
+ if(index<0)return;
+ tasks.splice(index,1);
+ closeAppointmentEditor();
+ refreshAppointments();
+};
+
+editorAllDay.onchange=updateEditorTimeFields;
+editorDate.onchange=updateEditorTimeFields;
+appointmentEditor.querySelectorAll('[data-editor-cancel]').forEach(button=>button.onclick=closeAppointmentEditor);
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!appointmentEditor.hidden)closeAppointmentEditor();
+});
