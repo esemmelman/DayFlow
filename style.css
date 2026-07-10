@@ -75,5 +75,5 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .add-slot,#addAllDay{font-size:.75rem}
 .appointment{flex-direction:column;align-items:flex-start;gap:2px}
 .appointment>span:first-child{width:100%}
-.task[draggable="true"]{touch-action:none}
+.task[draggable="true"]{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 }

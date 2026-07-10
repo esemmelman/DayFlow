@@ -6,6 +6,7 @@ const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
 let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
 let ignoreTaskClickUntil=0;
+let lastTouchPointerDown=0;
 
 function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
@@ -36,6 +37,7 @@ function createTaskElement(task,tagName='div',draggable=false){
  if(draggable){
   element.draggable=true;
   element.ondragstart=event=>{
+   if(Date.now()-lastTouchPointerDown<1000){event.preventDefault();return;}
    event.dataTransfer.effectAllowed='move';
    event.dataTransfer.setData('id',task.id);
   };
@@ -229,6 +231,7 @@ function endTouchDrag(event,shouldDrop){
 
 document.addEventListener('pointerdown',event=>{
  if(event.pointerType==='mouse'||event.button!==0)return;
+ lastTouchPointerDown=Date.now();
  const taskElement=event.target.closest('.task[draggable="true"]');
  if(!taskElement)return;
  const startX=event.clientX,startY=event.clientY;
@@ -249,7 +252,7 @@ document.addEventListener('pointerdown',event=>{
 document.addEventListener('pointermove',event=>{
  if(!touchDrag||event.pointerId!==touchDrag.pointerId)return;
  if(!touchDrag.active){
-  if(Math.hypot(event.clientX-touchDrag.startX,event.clientY-touchDrag.startY)>10){
+  if(Math.hypot(event.clientX-touchDrag.startX,event.clientY-touchDrag.startY)>18){
    clearTimeout(touchDrag.timer);
    touchDrag=null;
   }
