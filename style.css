@@ -34,7 +34,8 @@ aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .hour{display:grid;grid-template-columns:90px 44px minmax(0,1fr);align-items:start;border-bottom:1px solid #eee}
 .time{align-self:start;white-space:nowrap;padding:12px 8px;border-right:1px solid #eee;font-weight:600}
 .add-slot{align-self:start;min-width:44px;padding:0}
-.slot{min-width:0}
+.slot{min-width:0;min-height:48px}
+.task[draggable="true"]{cursor:grab}
 .appointments{display:flex;flex-direction:column;gap:6px;min-width:0;padding:6px 0}
 .appointments .task{margin:0}
 .modal[hidden]{display:none}
