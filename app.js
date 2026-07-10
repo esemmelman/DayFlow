@@ -87,11 +87,18 @@ function drawCal(){
    calendar.append(c);
  }
 }
-addBtn.onclick=()=>{
+function addInboxTask(){
  const title=newTask.value.trim();
  if(!title)return;
- openAppointmentEditor(null,{title,clearInbox:true});
+ tasks.push({id:String(Date.now()+Math.random()),title,date:null,time:null});
+ newTask.value='';
+ save();
+ renderInbox();
 }
+addBtn.onclick=addInboxTask;
+newTask.addEventListener('keydown',event=>{
+ if(event.key==='Enter'){event.preventDefault();addInboxTask();}
+});
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
 todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);drawCal();renderSelectedDay();}

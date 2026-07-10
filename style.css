@@ -67,4 +67,8 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .editor-actions span{display:none}
 .editor-actions .danger{grid-column:1/-1}
 .time{font-size:.9rem;padding-inline:6px}
+.hour{grid-template-columns:78px 48px minmax(0,1fr)}
+.add-slot,#addAllDay{font-size:.75rem}
+.appointment{flex-direction:column;align-items:flex-start;gap:2px}
+.appointment>span:first-child{width:100%}
 }
