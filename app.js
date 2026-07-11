@@ -17,6 +17,10 @@ function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
+function compareTaskTitles(a,b){
+ return a.title.localeCompare(b.title,undefined,{sensitivity:'base',numeric:true});
+}
+
 function seedWeeklyItemsOnce(weekday,title,seedKey,time=null,endTime=null){
  if(localStorage.getItem(seedKey))return;
  const start=new Date(2026,6,11,12);
@@ -72,14 +76,14 @@ function createTaskElement(task,tagName='div',draggable=false){
 
 function renderInbox(){
  inbox.innerHTML='';
- tasks.filter(x=>!x.date).sort((a,b)=>a.title.localeCompare(b.title,undefined,{sensitivity:'base',numeric:true})).forEach(x=>{
+ tasks.filter(x=>!x.date).sort(compareTaskTitles).forEach(x=>{
   inbox.append(createTaskElement(x,'li',true));
  });
 }
 
 function renderAllDay(){
  allDay.innerHTML='';
- tasks.filter(x=>x.date===key(sel)&&!x.time).forEach(x=>{
+ tasks.filter(x=>x.date===key(sel)&&!x.time).sort(compareTaskTitles).forEach(x=>{
    allDay.append(createTaskElement(x,'div',true));
  });
 }
@@ -307,7 +311,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m22</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m23</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -396,7 +400,7 @@ function renderMobileAgenda(){
   allDayAdd.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:null,allDay:true});
   allDayHeader.append(allDayLabel,allDayAdd);
   allDayZone.append(allDayHeader);
-  tasks.filter(task=>task.date===dateKey&&task.time==null).forEach(task=>{
+  tasks.filter(task=>task.date===dateKey&&task.time==null).sort(compareTaskTitles).forEach(task=>{
    allDayZone.append(createTaskElement(task,'div',true));
   });
   allDayZone.addEventListener('dragover',event=>event.preventDefault());
