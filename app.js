@@ -8,6 +8,7 @@ document.body.classList.toggle('android',usesAndroidAgenda);
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
 let mobileAgendaStart=new Date(t);
 mobileAgendaStart.setHours(0,0,0,0);
+let mobileAgendaDayCount=10,mobileAgendaObserver=null;
 let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
 let ignoreTaskClickUntil=0;
 let lastTouchPointerDown=0;
@@ -194,6 +195,7 @@ function renderAndroidSearchResults(){
    if(task.date){
     const [year,month,date]=task.date.split('-').map(Number);
     mobileAgendaStart=new Date(year,month-1,date);
+    mobileAgendaDayCount=10;
     renderMobileAgenda();
    }
    androidSearch.value='';
@@ -261,6 +263,7 @@ function renderAndroidCalendar(){
   button.textContent=String(date);
   button.onclick=()=>{
    mobileAgendaStart=new Date(year,month,date);
+   mobileAgendaDayCount=10;
    closeAndroidPanel();
    renderMobileAgenda();
    document.getElementById('mobileAgenda').scrollIntoView({block:'start'});
@@ -279,11 +282,11 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m14</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m15</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
-todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);mobileAgendaStart=new Date(t);mobileAgendaStart.setHours(0,0,0,0);drawCal();renderSelectedDay();renderMobileAgenda();}
+todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);mobileAgendaStart=new Date(t);mobileAgendaStart.setHours(0,0,0,0);mobileAgendaDayCount=10;drawCal();renderSelectedDay();renderMobileAgenda();}
 for(let h=7;h<=20;h++){
  let r=document.createElement('div');
  r.className='hour';
@@ -333,9 +336,15 @@ allDayDropZone.addEventListener('drop',event=>{
 function renderMobileAgenda(){
  const agenda=document.getElementById('mobileAgenda');
  if(!agenda)return;
+ mobileAgendaObserver?.disconnect();
  agenda.replaceChildren();
  const start=new Date(mobileAgendaStart);
- for(let offset=0;offset<10;offset++){
+ const yearEnd=new Date(start.getFullYear(),11,31);
+ const startUtc=Date.UTC(start.getFullYear(),start.getMonth(),start.getDate());
+ const endUtc=Date.UTC(yearEnd.getFullYear(),yearEnd.getMonth(),yearEnd.getDate());
+ const daysRemaining=Math.floor((endUtc-startUtc)/86400000)+1;
+ const daysToRender=Math.max(0,Math.min(mobileAgendaDayCount,daysRemaining));
+ for(let offset=0;offset<daysToRender;offset++){
   const date=new Date(start);
   date.setDate(start.getDate()+offset);
   const dateKey=key(date);
@@ -415,6 +424,19 @@ function renderMobileAgenda(){
   }
   day.append(timeline);
   agenda.append(day);
+ }
+ if(daysToRender<daysRemaining){
+  const sentinel=document.createElement('div');
+  sentinel.className='agenda-load-more';
+  sentinel.textContent='Loading more days…';
+  agenda.append(sentinel);
+  mobileAgendaObserver=new IntersectionObserver(entries=>{
+   if(!entries.some(entry=>entry.isIntersecting))return;
+   mobileAgendaObserver.disconnect();
+   mobileAgendaDayCount=Math.min(daysRemaining,mobileAgendaDayCount+10);
+   renderMobileAgenda();
+  },{rootMargin:'600px 0px'});
+  mobileAgendaObserver.observe(sentinel);
  }
 }
 

@@ -18,6 +18,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .agenda-day{margin-bottom:18px;border:1px solid #ccd5df;border-radius:8px;overflow:hidden}
 .agenda-day-title{margin:0;padding:10px 12px;background:#eef2f7;font-size:1.1rem}
 .agenda-day .allday{margin:8px;border-radius:6px}
+.agenda-load-more{text-align:center;color:#52606d;padding:18px}
 aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .calendar-panel{border-bottom:0}
 .new{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
