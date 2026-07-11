@@ -52,7 +52,7 @@ function createTaskElement(task,tagName='div',draggable=false){
 
 function renderInbox(){
  inbox.innerHTML='';
- tasks.filter(x=>!x.date).forEach(x=>{
+ tasks.filter(x=>!x.date).sort((a,b)=>a.title.localeCompare(b.title,undefined,{sensitivity:'base',numeric:true})).forEach(x=>{
   inbox.append(createTaskElement(x,'li',true));
  });
 }
@@ -282,7 +282,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m15</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m17</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -404,7 +404,7 @@ function renderMobileAgenda(){
    slot.className='slot';
    slot.dataset.date=dateKey;
    slot.dataset.hour=String(hour);
-   const appointments=tasks.filter(task=>task.date===dateKey&&task.time!=null&&timeHour(task.time)===hour);
+   const appointments=tasks.filter(task=>task.date===dateKey&&task.time!=null&&taskOccupiesHour(task,hour));
    if(appointments.length){
     const items=document.createElement('div');
     items.className='appointments';
@@ -443,6 +443,14 @@ function renderMobileAgenda(){
 function timeToMinutes(time){
  const [hour,minute]=toTimeValue(time).split(':').map(Number);
  return hour*60+minute;
+}
+
+function taskOccupiesHour(task,hour){
+ const start=timeToMinutes(task.time);
+ const end=task.endTime?timeToMinutes(task.endTime):start+60;
+ if(end<=start)return hour===Math.floor(start/60);
+ const slotStart=hour*60;
+ return slotStart<end&&slotStart+60>start;
 }
 
 function minutesToTime(minutes){
@@ -586,7 +594,9 @@ document.addEventListener('contextmenu',event=>{
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
  tasks.filter(x=>x.date===key(sel)&&x.time!=null).forEach(task=>{
-   const slot=document.querySelector(`.slot[data-hour="${timeHour(task.time)}"]`);
+  for(let hour=7;hour<=20;hour++){
+   if(!taskOccupiesHour(task,hour))continue;
+   const slot=document.querySelector(`.day-panel .slot[data-hour="${hour}"]`);
    if(slot){
       let items = slot.querySelector(".appointments");
 
@@ -598,6 +608,7 @@ if (!items) {
 
 items.appendChild(createTaskElement(task,'div',true));
    }
+  }
  });
 }
 
