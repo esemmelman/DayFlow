@@ -21,6 +21,19 @@ function compareTaskTitles(a,b){
  return a.title.localeCompare(b.title,undefined,{sensitivity:'base',numeric:true});
 }
 
+function compareTaskSchedule(a,b){
+ if(!a.date&&!b.date)return compareTaskTitles(a,b);
+ if(!a.date)return 1;
+ if(!b.date)return -1;
+ const [aYear,aMonth,aDay]=a.date.split('-').map(Number);
+ const [bYear,bMonth,bDay]=b.date.split('-').map(Number);
+ const dateDifference=Date.UTC(aYear,aMonth-1,aDay)-Date.UTC(bYear,bMonth-1,bDay);
+ if(dateDifference)return dateDifference;
+ const aMinutes=a.time==null?-1:timeToMinutes(a.time);
+ const bMinutes=b.time==null?-1:timeToMinutes(b.time);
+ return aMinutes-bMinutes||compareTaskTitles(a,b);
+}
+
 function seedWeeklyItemsOnce(weekday,title,seedKey,time=null,endTime=null){
  if(localStorage.getItem(seedKey))return;
  const start=new Date(2026,6,11,12);
@@ -196,7 +209,7 @@ function renderAndroidSearchResults(){
   androidPanel.append(message);
   return;
  }
- const matches=tasks.filter(task=>`${task.title} ${task.notes||''}`.toLocaleLowerCase().includes(query));
+ const matches=tasks.filter(task=>`${task.title} ${task.notes||''}`.toLocaleLowerCase().includes(query)).sort(compareTaskSchedule);
  if(!matches.length){
   const message=document.createElement('p');
   message.className='android-search-message';
@@ -311,7 +324,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m24</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m25</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
