@@ -279,7 +279,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m13</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m14</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}

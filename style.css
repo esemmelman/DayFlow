@@ -89,6 +89,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .toolbar{padding:4px 8px}
 .android .logo,.android .desktop-actions{display:none}
 .android .android-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+.android .android-nav button{min-width:0;padding-inline:4px;white-space:nowrap;font-size:.9rem}
 .android .android-add-form{display:block;width:100%}
 .android .android-search-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;width:100%}
 .android .android-add-form[hidden],.android .android-search-form[hidden],.android .android-nav[hidden]{display:none}
