@@ -106,7 +106,8 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android-calendar-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .android-calendar-header h2{margin:0;font-size:1.2rem}
 .android-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
-.android-calendar-grid button{min-width:0;padding:4px}
+.android-calendar-grid button{position:relative;min-width:0;padding:4px}
+.android-calendar-grid button.has-items::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;bottom:4px;left:50%;transform:translateX(-50%)}
 .android-about{text-align:center;font-weight:700;padding:12px}
 .android-search-results{display:grid;gap:6px}
 .android-search-message{margin:0;text-align:center;color:#52606d;padding:8px}

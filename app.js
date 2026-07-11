@@ -17,24 +17,23 @@ function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
-function seedTrashMondaysOnce(){
- const today=new Date(2026,6,11,12);
- const year=2026;
- const seedKey='df_seed_trash_mondays_2026_once';
+function seedWeeklyItemsOnce(weekday,title,seedKey){
  if(localStorage.getItem(seedKey))return;
- const monday=new Date(today);
- monday.setDate(today.getDate()+(1-today.getDay()+7)%7);
- const yearEnd=new Date(year,11,31,12);
- for(const date=new Date(monday);date<=yearEnd;date.setDate(date.getDate()+7)){
+ const start=new Date(2026,6,11,12);
+ const firstDate=new Date(start);
+ firstDate.setDate(start.getDate()+(weekday-start.getDay()+7)%7);
+ const yearEnd=new Date(2026,11,31,12);
+ for(const date=new Date(firstDate);date<=yearEnd;date.setDate(date.getDate()+7)){
   const dateValue=key(date);
-  if(tasks.some(task=>task.title==='Take the trash out'&&task.date===dateValue&&task.time==null))continue;
-  tasks.push({id:String(Date.now()+Math.random()),title:'Take the trash out',date:dateValue,time:null,endTime:null,notes:'',color:'#2f80ed'});
+  if(tasks.some(task=>task.title===title&&task.date===dateValue&&task.time==null))continue;
+  tasks.push({id:String(Date.now()+Math.random()),title,date:dateValue,time:null,endTime:null,notes:'',color:'#2f80ed'});
  }
  save();
  localStorage.setItem(seedKey,'1');
 }
 
-seedTrashMondaysOnce();
+seedWeeklyItemsOnce(1,'Take the trash out','df_seed_trash_mondays_2026_once');
+seedWeeklyItemsOnce(2,'Take the trash in','df_seed_trash_tuesdays_2026_once');
 
 function createTaskElement(task,tagName='div',draggable=false){
  const element=document.createElement(tagName);
@@ -280,6 +279,11 @@ function renderAndroidCalendar(){
   const button=document.createElement('button');
   button.type='button';
   button.textContent=String(date);
+  const dateValue=`${year}-${month+1}-${date}`;
+  if(tasks.some(task=>task.date===dateValue)){
+   button.classList.add('has-items');
+   button.setAttribute('aria-label',`${date}, has scheduled items`);
+  }
   button.onclick=()=>{
    mobileAgendaStart=new Date(year,month,date);
    mobileAgendaDayCount=10;
@@ -301,7 +305,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m18</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m20</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
