@@ -311,7 +311,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m23</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m24</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -383,7 +383,16 @@ function renderMobileAgenda(){
 
   const heading=document.createElement('h2');
   heading.className='agenda-day-title';
-  heading.textContent=date.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  const dateLabel=date.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  const headingDate=document.createElement('span');
+  headingDate.textContent=dateLabel;
+  const today=new Date();
+  const dateUtc=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());
+  const todayUtc=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());
+  const headingOffset=document.createElement('span');
+  headingOffset.className='agenda-day-offset';
+  headingOffset.textContent=String(Math.round((dateUtc-todayUtc)/86400000));
+  heading.append(headingDate,headingOffset);
   day.append(heading);
 
   const allDayZone=document.createElement('div');
@@ -396,7 +405,7 @@ function renderMobileAgenda(){
   const allDayAdd=document.createElement('button');
   allDayAdd.type='button';
   allDayAdd.textContent='+';
-  allDayAdd.setAttribute('aria-label',`Add all-day appointment on ${heading.textContent}`);
+  allDayAdd.setAttribute('aria-label',`Add all-day appointment on ${dateLabel}`);
   allDayAdd.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:null,allDay:true});
   allDayHeader.append(allDayLabel,allDayAdd);
   allDayZone.append(allDayHeader);
@@ -427,7 +436,7 @@ function renderMobileAgenda(){
    add.type='button';
    add.className='add-slot';
    add.textContent='+';
-   add.setAttribute('aria-label',`Add appointment at ${time.textContent} on ${heading.textContent}`);
+   add.setAttribute('aria-label',`Add appointment at ${time.textContent} on ${dateLabel}`);
    add.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:hour,allDay:false});
    const slot=document.createElement('div');
    slot.className='slot';
