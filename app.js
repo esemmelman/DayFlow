@@ -324,7 +324,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m26</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m27</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -537,8 +537,8 @@ function finishSwipeDelete(event,cancelled=false){
  ignoreTaskClickUntil=Date.now()+500;
  const distance=event.clientX-swipe.startX;
  swipe.element.style.transition='transform .18s ease, opacity .18s ease';
- if(!cancelled&&distance>=Math.max(120,window.innerWidth*.45)){
-  swipe.element.style.transform='translateX(110vw)';
+ if(!cancelled&&swipe.startLeft+distance<=0){
+  swipe.element.style.transform='translateX(-110vw)';
   swipe.element.style.opacity='0';
   setTimeout(()=>{
    const index=tasks.findIndex(task=>task.id===swipe.taskId);
@@ -633,7 +633,7 @@ document.addEventListener('pointerdown',event=>{
  touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,currentX:startX,currentY:startY,active:false,ghost:null,dropTarget:null,scrollFrame:null,timer:null};
  const taskId=taskElement.closest('[data-task-id]')?.dataset.taskId;
  touchDrag.taskId=taskId;
- swipeDelete={pointerId:event.pointerId,taskId,startX,startY,active:false,element:taskElement};
+ swipeDelete={pointerId:event.pointerId,taskId,startX,startY,startLeft:taskElement.getBoundingClientRect().left,active:false,element:taskElement};
  touchDrag.timer=setTimeout(()=>{
  if(!touchDrag||touchDrag.pointerId!==event.pointerId)return;
   swipeDelete=null;
@@ -651,12 +651,12 @@ document.addEventListener('pointermove',event=>{
  if(swipeDelete&&event.pointerId===swipeDelete.pointerId){
   const deltaX=event.clientX-swipeDelete.startX;
   const deltaY=event.clientY-swipeDelete.startY;
-  if(swipeDelete.active||(deltaX>8&&Math.abs(deltaX)>Math.abs(deltaY)*1.2)){
+  if(swipeDelete.active||(deltaX<-8&&Math.abs(deltaX)>Math.abs(deltaY)*1.2)){
    swipeDelete.active=true;
    if(touchDrag){clearTimeout(touchDrag.timer);touchDrag=null;}
    event.preventDefault();
-   swipeDelete.element.style.transform=`translateX(${Math.max(0,deltaX)}px)`;
-   swipeDelete.element.style.opacity=String(Math.max(.25,1-Math.max(0,deltaX)/window.innerWidth));
+   swipeDelete.element.style.transform=`translateX(${Math.min(0,deltaX)}px)`;
+   swipeDelete.element.style.opacity=String(Math.max(.25,1-Math.max(0,-deltaX)/window.innerWidth));
    return;
   }
  }
