@@ -324,7 +324,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m28</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m29</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -533,6 +533,7 @@ function finishSwipeDelete(event,cancelled=false){
  if(!swipeDelete||event.pointerId!==swipeDelete.pointerId)return;
  const swipe=swipeDelete;
  swipeDelete=null;
+ if(swipe.scrolling){ignoreTaskClickUntil=Date.now()+500;return;}
  if(!swipe.active)return;
  ignoreTaskClickUntil=Date.now()+500;
  swipe.element.style.transition='transform .18s ease, opacity .18s ease';
@@ -632,7 +633,7 @@ document.addEventListener('pointerdown',event=>{
  touchDrag={pointerId:event.pointerId,taskId:null,startX,startY,currentX:startX,currentY:startY,active:false,ghost:null,dropTarget:null,scrollFrame:null,timer:null};
  const taskId=taskElement.closest('[data-task-id]')?.dataset.taskId;
  touchDrag.taskId=taskId;
- swipeDelete={pointerId:event.pointerId,taskId,startX,startY,currentX:startX,active:false,element:taskElement};
+ swipeDelete={pointerId:event.pointerId,taskId,startX,startY,lastY:startY,currentX:startX,active:false,scrolling:false,element:taskElement};
  try{taskElement.setPointerCapture(event.pointerId);}catch{}
  touchDrag.timer=setTimeout(()=>{
  if(!touchDrag||touchDrag.pointerId!==event.pointerId)return;
@@ -650,6 +651,14 @@ document.addEventListener('pointermove',event=>{
  if(swipeDelete&&event.pointerId===swipeDelete.pointerId){
   const deltaX=event.clientX-swipeDelete.startX;
   const deltaY=event.clientY-swipeDelete.startY;
+  if(swipeDelete.scrolling||(!swipeDelete.active&&!touchDrag?.active&&Math.abs(deltaY)>8&&Math.abs(deltaY)>Math.abs(deltaX)*1.2)){
+   swipeDelete.scrolling=true;
+   if(touchDrag){clearTimeout(touchDrag.timer);touchDrag=null;}
+   event.preventDefault();
+   window.scrollBy(0,swipeDelete.lastY-event.clientY);
+   swipeDelete.lastY=event.clientY;
+   return;
+  }
   if(swipeDelete.active||(deltaX<-8&&Math.abs(deltaX)>Math.abs(deltaY)*1.2)){
    swipeDelete.active=true;
    swipeDelete.currentX=event.clientX;
