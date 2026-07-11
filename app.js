@@ -17,7 +17,7 @@ function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
-function seedWeeklyItemsOnce(weekday,title,seedKey){
+function seedWeeklyItemsOnce(weekday,title,seedKey,time=null,endTime=null){
  if(localStorage.getItem(seedKey))return;
  const start=new Date(2026,6,11,12);
  const firstDate=new Date(start);
@@ -25,8 +25,8 @@ function seedWeeklyItemsOnce(weekday,title,seedKey){
  const yearEnd=new Date(2026,11,31,12);
  for(const date=new Date(firstDate);date<=yearEnd;date.setDate(date.getDate()+7)){
   const dateValue=key(date);
-  if(tasks.some(task=>task.title===title&&task.date===dateValue&&task.time==null))continue;
-  tasks.push({id:String(Date.now()+Math.random()),title,date:dateValue,time:null,endTime:null,notes:'',color:'#2f80ed'});
+  if(tasks.some(task=>task.title===title&&task.date===dateValue&&task.time===time))continue;
+  tasks.push({id:String(Date.now()+Math.random()),title,date:dateValue,time,endTime,notes:'',color:'#2f80ed'});
  }
  save();
  localStorage.setItem(seedKey,'1');
@@ -34,6 +34,8 @@ function seedWeeklyItemsOnce(weekday,title,seedKey){
 
 seedWeeklyItemsOnce(1,'Take the trash out','df_seed_trash_mondays_2026_once');
 seedWeeklyItemsOnce(2,'Take the trash in','df_seed_trash_tuesdays_2026_once');
+seedWeeklyItemsOnce(2,'Dr. John','df_seed_dr_john_tuesdays_2026_once','10:00','11:30');
+seedWeeklyItemsOnce(4,'Swim class','df_seed_swim_class_thursdays_2026_once','15:20','15:40');
 
 function createTaskElement(task,tagName='div',draggable=false){
  const element=document.createElement(tagName);
@@ -305,7 +307,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m20</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m22</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
