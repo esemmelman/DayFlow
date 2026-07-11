@@ -7,7 +7,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .toolbar{min-height:56px;background:#fff;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
 .logo{font-size:28px;font-weight:700}
 .version{font-size:.5em;font-weight:600;color:#52606d;vertical-align:middle}
-.android-nav,.android-add-form{display:none}
+.android-nav,.android-add-form,.android-search-form{display:none}
 .android-panel{background:#fff;border-bottom:1px solid #ddd;padding:10px}
 .android-panel[hidden]{display:none}
 .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "day" "calendar" "agenda"}
@@ -88,10 +88,12 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "agenda";height:auto}
 .android .toolbar{padding:4px 8px}
 .android .logo,.android .desktop-actions{display:none}
-.android .android-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.android .android-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
 .android .android-add-form{display:block;width:100%}
-.android .android-add-form[hidden],.android .android-nav[hidden]{display:none}
+.android .android-search-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;width:100%}
+.android .android-add-form[hidden],.android .android-search-form[hidden],.android .android-nav[hidden]{display:none}
 .android .android-add-form input{width:100%;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
+.android .android-search-form input{min-width:0;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
 .android .android-panel{display:block}
 .android .android-panel[hidden]{display:none}
 .android .inbox-panel{padding:0 8px;border-bottom:0}
@@ -104,4 +106,8 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
 .android-calendar-grid button{min-width:0;padding:4px}
 .android-about{text-align:center;font-weight:700;padding:12px}
+.android-search-results{display:grid;gap:6px}
+.android-search-message{margin:0;text-align:center;color:#52606d;padding:8px}
+.android-search-result{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#f7f9fb;color:#1f2933;border:1px solid #ccd5df}
+.android-search-result small{color:#52606d}
 @media (max-width:599px) and (pointer:coarse){.day-panel,.calendar-panel{display:none}.mobile-agenda-panel{display:block;padding:8px;border-right:0;overflow:visible}}

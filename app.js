@@ -113,9 +113,13 @@ newTask.addEventListener('keydown',event=>{
 const androidNav=document.getElementById('androidNav');
 const androidAdd=document.getElementById('androidAdd');
 const androidCal=document.getElementById('androidCal');
+const androidFind=document.getElementById('androidFind');
 const androidAbout=document.getElementById('androidAbout');
 const androidAddForm=document.getElementById('androidAddForm');
 const androidNewTask=document.getElementById('androidNewTask');
+const androidSearchForm=document.getElementById('androidSearchForm');
+const androidSearch=document.getElementById('androidSearch');
+const androidSearchCancel=document.getElementById('androidSearchCancel');
 const androidPanel=document.getElementById('androidPanel');
 let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
 
@@ -126,12 +130,14 @@ function closeAndroidPanel(){
 
 function showAndroidButtons(){
  androidAddForm.hidden=true;
+ androidSearchForm.hidden=true;
  androidNav.hidden=false;
 }
 
 androidAdd.onclick=()=>{
  closeAndroidPanel();
  androidNav.hidden=true;
+ androidSearchForm.hidden=true;
  androidAddForm.hidden=false;
  androidNewTask.focus();
 };
@@ -146,6 +152,80 @@ androidAddForm.addEventListener('submit',event=>{
  androidNewTask.blur();
  showAndroidButtons();
 });
+
+function searchResultDetail(task){
+ if(!task.date)return 'Inbox';
+ const [year,month,date]=task.date.split('-').map(Number);
+ const day=new Date(year,month-1,date).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+ return task.time!=null?`${day} · ${formatTimeRange(task.time,task.endTime)}`:`${day} · All Day`;
+}
+
+function renderAndroidSearchResults(){
+ androidPanel.hidden=false;
+ androidPanel.replaceChildren();
+ const query=androidSearch.value.trim().toLocaleLowerCase();
+ if(!query){
+  const message=document.createElement('p');
+  message.className='android-search-message';
+  message.textContent='Type to search all tasks.';
+  androidPanel.append(message);
+  return;
+ }
+ const matches=tasks.filter(task=>`${task.title} ${task.notes||''}`.toLocaleLowerCase().includes(query));
+ if(!matches.length){
+  const message=document.createElement('p');
+  message.className='android-search-message';
+  message.textContent='No matching tasks.';
+  androidPanel.append(message);
+  return;
+ }
+ const results=document.createElement('div');
+ results.className='android-search-results';
+ matches.forEach(task=>{
+  const result=document.createElement('button');
+  result.type='button';
+  result.className='android-search-result';
+  const title=document.createElement('strong');
+  title.textContent=task.title;
+  const detail=document.createElement('small');
+  detail.textContent=searchResultDetail(task);
+  result.append(title,detail);
+  result.onclick=()=>{
+   if(task.date){
+    const [year,month,date]=task.date.split('-').map(Number);
+    mobileAgendaStart=new Date(year,month-1,date);
+    renderMobileAgenda();
+   }
+   androidSearch.value='';
+   closeAndroidPanel();
+   showAndroidButtons();
+   openAppointmentEditor(task);
+  };
+  results.append(result);
+ });
+ androidPanel.append(results);
+}
+
+androidFind.onclick=()=>{
+ closeAndroidPanel();
+ androidNav.hidden=true;
+ androidAddForm.hidden=true;
+ androidSearchForm.hidden=false;
+ androidSearch.value='';
+ renderAndroidSearchResults();
+ androidSearch.focus();
+};
+androidSearch.addEventListener('input',renderAndroidSearchResults);
+androidSearchForm.addEventListener('submit',event=>{
+ event.preventDefault();
+ renderAndroidSearchResults();
+});
+androidSearchCancel.onclick=()=>{
+ androidSearch.value='';
+ androidSearch.blur();
+ closeAndroidPanel();
+ showAndroidButtons();
+};
 
 function renderAndroidCalendar(){
  androidPanel.hidden=false;
@@ -199,7 +279,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m12</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m13</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
