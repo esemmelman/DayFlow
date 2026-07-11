@@ -17,6 +17,25 @@ function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
+function seedTrashMondaysOnce(){
+ const today=new Date(2026,6,11,12);
+ const year=2026;
+ const seedKey='df_seed_trash_mondays_2026_once';
+ if(localStorage.getItem(seedKey))return;
+ const monday=new Date(today);
+ monday.setDate(today.getDate()+(1-today.getDay()+7)%7);
+ const yearEnd=new Date(year,11,31,12);
+ for(const date=new Date(monday);date<=yearEnd;date.setDate(date.getDate()+7)){
+  const dateValue=key(date);
+  if(tasks.some(task=>task.title==='Take the trash out'&&task.date===dateValue&&task.time==null))continue;
+  tasks.push({id:String(Date.now()+Math.random()),title:'Take the trash out',date:dateValue,time:null,endTime:null,notes:'',color:'#2f80ed'});
+ }
+ save();
+ localStorage.setItem(seedKey,'1');
+}
+
+seedTrashMondaysOnce();
+
 function createTaskElement(task,tagName='div',draggable=false){
  const element=document.createElement(tagName);
  element.className=`task${task.date?' appointment':''}`;
@@ -282,7 +301,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m17</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m18</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
