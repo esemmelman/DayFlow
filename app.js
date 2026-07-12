@@ -61,6 +61,14 @@ function createTaskElement(task,tagName='div',draggable=false){
  const title=document.createElement('span');
  title.textContent=task.title;
  element.append(title);
+ if(task.notes?.trim()){
+  const noteIndicator=document.createElement('span');
+  noteIndicator.className='note-indicator';
+  noteIndicator.textContent='✎';
+  noteIndicator.title='Has notes';
+  noteIndicator.setAttribute('aria-label','Has notes');
+  title.append(noteIndicator);
+ }
  if(task.date&&task.time!==null&&task.time!==undefined){
   const time=document.createElement('span');
   time.className='task-time';
@@ -110,8 +118,8 @@ function renderSelectedDay(){
 function drawCal(){
  monthTitle.textContent=new Date(y,m).toLocaleString('default',{month:'long',year:'numeric'});
  calendar.innerHTML='';
- ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(n=>{let e=document.createElement('div');e.className='dow';e.textContent=n;calendar.append(e);});
- let first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(n=>{let e=document.createElement('div');e.className='dow';e.textContent=n;calendar.append(e);});
+ let first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
  for(let i=0;i<first;i++)calendar.append(document.createElement('div'));
  for(let d=1;d<=days;d++){
    let c=document.createElement('div');c.className='day';
@@ -119,6 +127,7 @@ function drawCal(){
    if(sel.getFullYear()==y&&sel.getMonth()==m&&sel.getDate()==d)c.classList.add('selected');
    c.innerHTML="<b>"+d+"</b>";
    let k=`${y}-${m+1}-${d}`;
+   if(k===key(new Date()))c.classList.add('today');
    if(tasks.some(x=>x.date===k)){let dot=document.createElement('div');dot.className='dot';c.append(dot);}
    c.onclick=()=>{sel=new Date(y,m,d);drawCal();renderSelectedDay();}
    c.ondragover=e=>e.preventDefault();
@@ -284,14 +293,14 @@ function renderAndroidCalendar(){
  header.append(previous,title,next);
  const grid=document.createElement('div');
  grid.className='android-calendar-grid';
- ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(label=>{
+ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(label=>{
   const weekday=document.createElement('b');
   weekday.textContent=label;
   grid.append(weekday);
  });
  const year=androidPickerMonth.getFullYear();
  const month=androidPickerMonth.getMonth();
- const firstWeekday=new Date(year,month,1).getDay();
+ const firstWeekday=(new Date(year,month,1).getDay()+6)%7;
  for(let blank=0;blank<firstWeekday;blank++)grid.append(document.createElement('span'));
  const days=new Date(year,month+1,0).getDate();
  for(let date=1;date<=days;date++){
@@ -299,6 +308,7 @@ function renderAndroidCalendar(){
   button.type='button';
   button.textContent=String(date);
   const dateValue=`${year}-${month+1}-${date}`;
+  if(dateValue===key(new Date()))button.classList.add('today');
   if(tasks.some(task=>task.date===dateValue)){
    button.classList.add('has-items');
    button.setAttribute('aria-label',`${date}, has scheduled items`);
@@ -324,7 +334,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m29</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m30</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}

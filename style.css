@@ -28,6 +28,7 @@ aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .appointment{display:flex;justify-content:flex-start;gap:8px;align-items:baseline}
 .appointment>span:first-child{min-width:0;overflow-wrap:anywhere}
 .task-time{flex:0 0 auto;white-space:nowrap;font-size:.85em;color:#52606d;font-weight:600}
+.note-indicator{margin-left:6px;color:#2f80ed;font-size:.8em;font-weight:700}
 #inbox{list-style:none;padding:0}
 #inbox .task,.appointment{border-left:4px solid var(--appointment-color,#ccd5df)}
 .monthbar{display:flex;justify-content:space-between;gap:8px;align-items:center}
@@ -38,6 +39,7 @@ aside,section{background:#fff;padding:14px;border-bottom:1px solid #ddd}
 .dow{font-weight:700;background:#f0f3f7}
 .day{min-height:54px;border:1px solid #ddd;position:relative;cursor:pointer;touch-action:manipulation}
 .day.selected{outline:2px solid #2f80ed}
+.day.today{background:#dff5e8}
 .dot{width:7px;height:7px;border-radius:50%;background:#2f80ed;position:absolute;bottom:5px;left:50%;transform:translateX(-50%)}
 .allday{border:1px solid #ddd;border-radius:6px;padding:8px;margin-bottom:10px;min-height:56px}
 .allday-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -109,6 +111,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
 .android-calendar-grid button{position:relative;min-width:0;padding:4px}
 .android-calendar-grid button.has-items::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;bottom:4px;left:50%;transform:translateX(-50%)}
+.android-calendar-grid button.today{background:#1b7f5a}
 .android-about{text-align:center;font-weight:700;padding:12px}
 .android-search-results{display:grid;gap:6px}
 .android-search-message{margin:0;text-align:center;color:#52606d;padding:8px}
