@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.7
+// DayFlow v0.7-m31
 
 const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
 const usesAndroidAgenda=/Android/i.test(navigator.userAgent)||matchMedia('(max-width:599px) and (pointer:coarse)').matches;
@@ -338,7 +338,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m30</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.7-m31</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
