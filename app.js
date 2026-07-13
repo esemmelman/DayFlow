@@ -21,6 +21,10 @@ function compareTaskTitles(a,b){
  return a.title.localeCompare(b.title,undefined,{sensitivity:'base',numeric:true});
 }
 
+function compareTaskStartTimes(a,b){
+ return timeToMinutes(a.time)-timeToMinutes(b.time)||compareTaskTitles(a,b);
+}
+
 function compareTaskSchedule(a,b){
  if(!a.date&&!b.date)return compareTaskTitles(a,b);
  if(!a.date)return 1;
@@ -465,7 +469,7 @@ function renderMobileAgenda(){
    slot.className='slot';
    slot.dataset.date=dateKey;
    slot.dataset.hour=String(hour);
-   const appointments=tasks.filter(task=>task.date===dateKey&&task.time!=null&&taskOccupiesHour(task,hour));
+   const appointments=tasks.filter(task=>task.date===dateKey&&task.time!=null&&taskOccupiesHour(task,hour)).sort(compareTaskStartTimes);
    if(appointments.length){
     const items=document.createElement('div');
     items.className='appointments';
@@ -716,7 +720,7 @@ document.addEventListener('contextmenu',event=>{
 
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
- tasks.filter(x=>x.date===key(sel)&&x.time!=null).forEach(task=>{
+ tasks.filter(x=>x.date===key(sel)&&x.time!=null).sort(compareTaskStartTimes).forEach(task=>{
   for(let hour=7;hour<=20;hour++){
    if(!taskOccupiesHour(task,hour))continue;
    const slot=document.querySelector(`.day-panel .slot[data-hour="${hour}"]`);
