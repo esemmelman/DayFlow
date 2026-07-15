@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m3
+// DayFlow v0.8-m4
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -416,7 +416,7 @@ function enableHorizontalMonthSwipe(element){
   swipe=null;
   if(Math.abs(deltaX)<50||Math.abs(deltaX)<=Math.abs(deltaY)*1.25)return;
   event.preventDefault();
-  androidPickerMonth.setMonth(androidPickerMonth.getMonth()+(deltaX>0?1:-1));
+  androidPickerMonth.setMonth(androidPickerMonth.getMonth()+(deltaX>0?-1:1));
   renderAndroidCalendar();
  };
  element.onpointercancel=()=>{swipe=null;};
@@ -431,7 +431,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m3</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m4</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
