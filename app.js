@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m2
+// DayFlow v0.8-m3
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -22,7 +22,17 @@ function setSyncStatus(message,state=''){
  const status=document.getElementById('syncStatus');
  if(status){status.textContent=message;status.dataset.state=state;}
 }
+function snapshotStorageKey(){return `dayflow:snapshots:${currentUser?.id||'device'}`;}
+function createTaskSnapshot(reason,snapshotTasks=tasks){
+ if(!snapshotTasks.length)return;
+ try{
+  const snapshots=JSON.parse(localStorage.getItem(snapshotStorageKey())||'[]');
+  snapshots.unshift({createdAt:new Date().toISOString(),reason,tasks:snapshotTasks});
+  localStorage.setItem(snapshotStorageKey(),JSON.stringify(snapshots.slice(0,10)));
+ }catch(error){console.warn('Could not create DayFlow snapshot',error);}
+}
 function save(){
+ createTaskSnapshot('change');
  localStorage.setItem(currentUser?`df6:${currentUser.id}`:'df6',JSON.stringify(tasks));
  if(!currentUser)return;
  clearTimeout(syncTimer);setSyncStatus('Saving…','pending');syncTimer=setTimeout(syncTasks,250);
@@ -67,7 +77,8 @@ async function loadRemoteTasks(){
    tasks=[...merged.values()];
    renderEverything();
    await syncTasks();
-  }else{
+ }else{
+   createTaskSnapshot('before remote refresh');
    tasks=remoteTasks;localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));
    renderEverything();setSyncStatus('Synced','ok');
   }
@@ -386,9 +397,29 @@ function renderAndroidCalendar(){
    renderMobileAgenda();
    document.getElementById('mobileAgenda').scrollIntoView({block:'start'});
   };
-  grid.append(button);
+ grid.append(button);
  }
+ enableHorizontalMonthSwipe(grid);
  androidPanel.append(header,grid);
+}
+
+function enableHorizontalMonthSwipe(element){
+ let swipe=null;
+ element.onpointerdown=event=>{
+  if(!event.isPrimary)return;
+  swipe={id:event.pointerId,x:event.clientX,y:event.clientY};
+  try{element.setPointerCapture(event.pointerId);}catch{}
+ };
+ element.onpointerup=event=>{
+  if(!swipe||event.pointerId!==swipe.id)return;
+  const deltaX=event.clientX-swipe.x,deltaY=event.clientY-swipe.y;
+  swipe=null;
+  if(Math.abs(deltaX)<50||Math.abs(deltaX)<=Math.abs(deltaY)*1.25)return;
+  event.preventDefault();
+  androidPickerMonth.setMonth(androidPickerMonth.getMonth()+(deltaX>0?1:-1));
+  renderAndroidCalendar();
+ };
+ element.onpointercancel=()=>{swipe=null;};
 }
 
 androidCal.onclick=()=>{
@@ -400,7 +431,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m2</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m3</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -957,6 +988,42 @@ document.addEventListener('keydown',event=>{
 const accountBtn=document.getElementById('accountBtn'),authDialog=document.getElementById('authDialog'),authForm=document.getElementById('authForm');
 const authEmail=document.getElementById('authEmail'),authPassword=document.getElementById('authPassword'),authError=document.getElementById('authError');
 const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn');
+const downloadBackupBtn=document.getElementById('downloadBackupBtn'),restoreBackupBtn=document.getElementById('restoreBackupBtn'),restoreSnapshotBtn=document.getElementById('restoreSnapshotBtn'),restoreBackupFile=document.getElementById('restoreBackupFile');
+
+function mergeRestoredTasks(imported){
+ createTaskSnapshot('before backup restore');
+ const merged=new Map(tasks.map(task=>[String(task.id),task]));
+ imported.forEach(task=>merged.set(String(task.id),{...task,id:String(task.id)}));
+ tasks=[...merged.values()];save();renderEverything();
+}
+
+downloadBackupBtn.onclick=()=>{
+ const backup={format:'dayflow-backup',version:1,exportedAt:new Date().toISOString(),tasks};
+ const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=`dayflow-backup-${new Date().toISOString().slice(0,10)}.json`;
+ document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+ authError.textContent=`Backup downloaded with ${tasks.length} tasks.`;
+};
+restoreBackupBtn.onclick=()=>restoreBackupFile.click();
+restoreSnapshotBtn.onclick=()=>{
+ const snapshots=JSON.parse(localStorage.getItem(snapshotStorageKey())||'[]');
+ if(!snapshots.length){authError.textContent='No automatic snapshot is available on this device yet.';return;}
+ mergeRestoredTasks(snapshots[0].tasks);
+ authError.textContent=`Restored the latest device snapshot; ${tasks.length} total tasks.`;
+};
+restoreBackupFile.onchange=async()=>{
+ const file=restoreBackupFile.files?.[0];
+ if(!file)return;
+ try{
+  const parsed=JSON.parse(await file.text());
+  const imported=Array.isArray(parsed)?parsed:parsed.tasks;
+  if(!Array.isArray(imported)||imported.some(task=>!task||task.id==null||typeof task.title!=='string'))throw new Error('This is not a valid DayFlow backup.');
+  mergeRestoredTasks(imported);
+  authError.textContent=`Restored ${imported.length} tasks; ${tasks.length} total.`;
+ }catch(error){authError.textContent=error.message||'Could not restore this backup.';}
+ finally{restoreBackupFile.value='';}
+};
 function updateAccountUi(){
  accountBtn.textContent=currentUser?currentUser.email:'Connect';signOutBtn.hidden=!currentUser;signUpBtn.hidden=Boolean(currentUser);
  authPassword.closest('label').hidden=Boolean(currentUser);authEmail.closest('label').hidden=Boolean(currentUser);
