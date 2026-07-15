@@ -1,8 +1,9 @@
 // TEST
 
-// DayFlow v0.8-m1
+// DayFlow v0.8-m2
 
-let tasks=JSON.parse(localStorage.getItem('df6')||'[]');
+let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
+let tasks=[...legacyTasks];
 let currentUser=null,remoteTaskIds=new Set(),syncTimer=null,syncInProgress=false,syncAgain=false,taskChannel=null;
 const supabaseSettings=window.DAYFLOW_SUPABASE||{};
 const supabaseClient=window.supabase&&supabaseSettings.url&&supabaseSettings.publishableKey
@@ -43,7 +44,11 @@ async function syncTasks(){
   if(deleted.length){const {error}=await supabaseClient.from('tasks').delete().in('id',deleted);if(error)throw error;}
   remoteTaskIds=currentIds;
   localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));
-  localStorage.removeItem('df6');
+  if(legacyTasks.length){
+   localStorage.setItem('df6:legacy-backup',JSON.stringify(legacyTasks));
+   legacyTasks=[];
+   localStorage.removeItem('df6');
+  }
   setSyncStatus('Synced','ok');
  }catch(error){console.error('DayFlow sync failed',error);setSyncStatus('Sync failed','error');}
  finally{syncInProgress=false;if(syncAgain){syncAgain=false;syncTasks();}}
@@ -55,8 +60,17 @@ async function loadRemoteTasks(){
  if(error){setSyncStatus('Load failed','error');throw error;}
  remoteTaskIds=new Set((data||[]).map(row=>row.id));
  if(data?.length){
-  tasks=data.map(rowToTask);localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));localStorage.removeItem('df6');
-  renderEverything();setSyncStatus('Synced','ok');
+  const remoteTasks=data.map(rowToTask);
+  if(legacyTasks.length){
+   const merged=new Map(legacyTasks.map(task=>[String(task.id),task]));
+   remoteTasks.forEach(task=>merged.set(String(task.id),task));
+   tasks=[...merged.values()];
+   renderEverything();
+   await syncTasks();
+  }else{
+   tasks=remoteTasks;localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));
+   renderEverything();setSyncStatus('Synced','ok');
+  }
  }
  else if(tasks.length)await syncTasks();
  else setSyncStatus('Synced','ok');
@@ -386,7 +400,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m1</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m2</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
