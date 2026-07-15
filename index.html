@@ -4,8 +4,8 @@
 <link rel="stylesheet" href="style.css?v=0.7-m30">
 </head><body>
 <header class="toolbar"><div class="logo">DayFlow <span class="version">v0.7-m31</span></div>
-<div class="desktop-actions"><button id="todayBtn">Today</button></div>
-<nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidFind" type="button">Find</button><button id="androidAbout" type="button">About</button></nav>
+<div class="desktop-actions"><button id="todayBtn">Today</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
+<nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button">About</button></nav>
 <form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
 <form id="androidSearchForm" class="android-search-form" hidden><input id="androidSearch" type="search" enterkeyhint="search" autocomplete="off" aria-label="Search tasks" placeholder="Search tasks"><button id="androidSearchCancel" type="button">Cancel</button></form>
 </header>
@@ -32,6 +32,17 @@
 <div id="mobileAgenda"></div>
 </section>
 </div>
+<div id="authDialog" class="modal" hidden>
+<div class="modal-backdrop" data-auth-cancel></div>
+<form id="authForm" class="appointment-editor auth-editor" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+<div class="editor-header"><h2 id="authTitle">Connect DayFlow</h2><button type="button" class="editor-close" data-auth-cancel aria-label="Close">×</button></div>
+<p>Sign in to keep the same DayFlow tasks on Android and the browser.</p>
+<label class="editor-field">Email<input id="authEmail" type="email" autocomplete="email" required></label>
+<label class="editor-field">Password<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required></label>
+<p id="authError" class="editor-error" aria-live="polite"></p>
+<div class="editor-actions"><button id="signOutBtn" type="button" class="danger" hidden>Sign out</button><span></span><button id="signUpBtn" type="button">Create account</button><button type="submit">Sign in</button></div>
+</form>
+</div>
 <div id="appointmentEditor" class="modal" hidden>
 <div class="modal-backdrop" data-editor-cancel></div>
 <form id="appointmentForm" class="appointment-editor" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
@@ -46,5 +57,7 @@
 <div class="editor-actions"><button id="editorDelete" type="button" class="danger" hidden>Delete</button><span></span><button type="button" data-editor-cancel>Cancel</button><button type="submit">Save</button></div>
 </form>
 </div>
-<script src="app.js?v=0.7-m30"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js?v=0.8-supabase"></script>
 </body></html>

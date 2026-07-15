@@ -2,7 +2,11 @@
 
 // DayFlow v0.7-m31
 
-const tasks=JSON.parse(localStorage.getItem('df6')||'[]');
+let tasks=JSON.parse(localStorage.getItem('df6')||'[]');
+let currentUser=null,remoteTaskIds=new Set(),syncTimer=null,syncInProgress=false,syncAgain=false,taskChannel=null;
+const supabaseSettings=window.DAYFLOW_SUPABASE||{};
+const supabaseClient=window.supabase&&supabaseSettings.url&&supabaseSettings.publishableKey
+ ?window.supabase.createClient(supabaseSettings.url,supabaseSettings.publishableKey):null;
 const usesAndroidAgenda=/Android/i.test(navigator.userAgent)||matchMedia('(max-width:599px) and (pointer:coarse)').matches;
 document.body.classList.toggle('android',usesAndroidAgenda);
 let t=new Date(),y=t.getFullYear(),m=t.getMonth(),sel=new Date(t);
@@ -13,7 +17,50 @@ let editingAppointmentId=null,clearInboxAfterSave=false,editorReturnFocus=null;
 let ignoreTaskClickUntil=0;
 let lastTouchPointerDown=0;
 
-function save(){localStorage.setItem('df6',JSON.stringify(tasks));}
+function setSyncStatus(message,state=''){
+ const status=document.getElementById('syncStatus');
+ if(status){status.textContent=message;status.dataset.state=state;}
+}
+function save(){
+ localStorage.setItem(currentUser?`df6:${currentUser.id}`:'df6',JSON.stringify(tasks));
+ if(!currentUser)return;
+ clearTimeout(syncTimer);setSyncStatus('Saving…','pending');syncTimer=setTimeout(syncTasks,250);
+}
+function taskToRow(task){return {id:String(task.id),user_id:currentUser.id,title:task.title,date:task.date||null,start_time:task.time??null,end_time:task.endTime??null,notes:task.notes||'',color:task.color||'#2f80ed'};}
+function rowToTask(row){
+ const date=row.date?row.date.split('-').map(Number).join('-'):null;
+ return {id:row.id,title:row.title,date,time:row.start_time?.slice(0,5)??null,endTime:row.end_time?.slice(0,5)??null,notes:row.notes||'',color:row.color||'#2f80ed'};
+}
+async function syncTasks(){
+ if(!supabaseClient||!currentUser)return;
+ if(syncInProgress){syncAgain=true;return;}
+ syncInProgress=true;
+ try{
+  const rows=tasks.map(taskToRow);
+  if(rows.length){const {error}=await supabaseClient.from('tasks').upsert(rows,{onConflict:'user_id,id'});if(error)throw error;}
+  const currentIds=new Set(tasks.map(task=>String(task.id)));
+  const deleted=[...remoteTaskIds].filter(id=>!currentIds.has(id));
+  if(deleted.length){const {error}=await supabaseClient.from('tasks').delete().in('id',deleted);if(error)throw error;}
+  remoteTaskIds=currentIds;
+  localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));
+  localStorage.removeItem('df6');
+  setSyncStatus('Synced','ok');
+ }catch(error){console.error('DayFlow sync failed',error);setSyncStatus('Sync failed','error');}
+ finally{syncInProgress=false;if(syncAgain){syncAgain=false;syncTasks();}}
+}
+function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();}
+async function loadRemoteTasks(){
+ setSyncStatus('Loading…','pending');
+ const {data,error}=await supabaseClient.from('tasks').select('*').order('created_at');
+ if(error){setSyncStatus('Load failed','error');throw error;}
+ remoteTaskIds=new Set((data||[]).map(row=>row.id));
+ if(data?.length){
+  tasks=data.map(rowToTask);localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));localStorage.removeItem('df6');
+  renderEverything();setSyncStatus('Synced','ok');
+ }
+ else if(tasks.length)await syncTasks();
+ else setSyncStatus('Synced','ok');
+}
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
@@ -166,6 +213,7 @@ const androidAdd=document.getElementById('androidAdd');
 const androidCal=document.getElementById('androidCal');
 const androidFind=document.getElementById('androidFind');
 const androidAbout=document.getElementById('androidAbout');
+const androidAccount=document.getElementById('androidAccount');
 const androidAddForm=document.getElementById('androidAddForm');
 const androidNewTask=document.getElementById('androidNewTask');
 const androidSearchForm=document.getElementById('androidSearchForm');
@@ -891,3 +939,47 @@ appointmentEditor.querySelectorAll('[data-editor-cancel]').forEach(button=>butto
 document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&!appointmentEditor.hidden)closeAppointmentEditor();
 });
+
+const accountBtn=document.getElementById('accountBtn'),authDialog=document.getElementById('authDialog'),authForm=document.getElementById('authForm');
+const authEmail=document.getElementById('authEmail'),authPassword=document.getElementById('authPassword'),authError=document.getElementById('authError');
+const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn');
+function updateAccountUi(){
+ accountBtn.textContent=currentUser?currentUser.email:'Connect';signOutBtn.hidden=!currentUser;signUpBtn.hidden=Boolean(currentUser);
+ authPassword.closest('label').hidden=Boolean(currentUser);authEmail.closest('label').hidden=Boolean(currentUser);
+ authForm.querySelector('button[type="submit"]').hidden=Boolean(currentUser);
+}
+function openAuthDialog(){authError.textContent=supabaseClient?'':'Add your Supabase URL and publishable key to supabase-config.js first.';updateAccountUi();authDialog.hidden=false;if(!currentUser)authEmail.focus();}
+function closeAuthDialog(){authDialog.hidden=true;authError.textContent='';}
+accountBtn.onclick=openAuthDialog;
+androidAccount.onclick=openAuthDialog;
+authDialog.querySelectorAll('[data-auth-cancel]').forEach(button=>button.onclick=closeAuthDialog);
+authForm.addEventListener('submit',async event=>{
+ event.preventDefault();if(!supabaseClient)return openAuthDialog();authError.textContent='Signing in…';
+ const {error}=await supabaseClient.auth.signInWithPassword({email:authEmail.value.trim(),password:authPassword.value});
+ if(error)authError.textContent=error.message;else closeAuthDialog();
+});
+signUpBtn.onclick=async()=>{
+ if(!supabaseClient)return openAuthDialog();authError.textContent='Creating account…';
+ const {data,error}=await supabaseClient.auth.signUp({email:authEmail.value.trim(),password:authPassword.value});
+ authError.textContent=error?error.message:(data.session?'Account created.':'Check your email to confirm your account, then sign in.');
+};
+signOutBtn.onclick=async()=>{await supabaseClient?.auth.signOut();closeAuthDialog();};
+async function applySession(session){
+ const nextUser=session?.user||null;if(nextUser?.id===currentUser?.id)return;
+ currentUser=nextUser;remoteTaskIds=new Set();
+ if(taskChannel){await supabaseClient.removeChannel(taskChannel);taskChannel=null;}
+ updateAccountUi();
+ if(!currentUser){tasks=[];renderEverything();setSyncStatus(supabaseClient?'Not signed in':'Local only');return;}
+ const cachedTasks=localStorage.getItem(`df6:${currentUser.id}`);
+ if(cachedTasks){tasks=JSON.parse(cachedTasks);renderEverything();}
+ try{
+  await loadRemoteTasks();
+  taskChannel=supabaseClient.channel(`tasks:${currentUser.id}`).on('postgres_changes',{event:'*',schema:'public',table:'tasks',filter:`user_id=eq.${currentUser.id}`},()=>{
+   clearTimeout(syncTimer);syncTimer=setTimeout(loadRemoteTasks,350);
+  }).subscribe();
+ }catch(error){console.error('Could not load DayFlow tasks',error);}
+}
+if(supabaseClient){
+ supabaseClient.auth.onAuthStateChange((_event,session)=>setTimeout(()=>applySession(session),0));
+ supabaseClient.auth.getSession().then(({data})=>applySession(data.session));
+}else setSyncStatus('Local only');
