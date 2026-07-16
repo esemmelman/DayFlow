@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m11
+// DayFlow v0.8-m12
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -22,12 +22,14 @@ function setSyncStatus(message,state=''){
  const status=document.getElementById('syncStatus');
  if(status){status.textContent=message;status.dataset.state=state;}
 }
-function deduplicateDrJohnTimeSlots(){
+function deduplicateSeededTimeSlots(){
+ const deduplicatedTitles=new Set(['dr. john','swim class']);
  const occupiedSlots=new Set();
  const originalCount=tasks.length;
  tasks=tasks.filter(task=>{
-  if(task.title.trim().toLocaleLowerCase()!=='dr. john'||!task.date)return true;
-  const slot=`${task.date}|${task.time??'all-day'}`;
+  const normalizedTitle=task.title.trim().toLocaleLowerCase();
+  if(!deduplicatedTitles.has(normalizedTitle)||!task.date)return true;
+  const slot=`${normalizedTitle}|${task.date}|${task.time??'all-day'}`;
   if(occupiedSlots.has(slot))return false;
   occupiedSlots.add(slot);
   return true;
@@ -45,7 +47,7 @@ function createTaskSnapshot(reason,snapshotTasks=tasks){
 }
 function save(){
  createTaskSnapshot('change');
- deduplicateDrJohnTimeSlots();
+ deduplicateSeededTimeSlots();
  localStorage.setItem(currentUser?`df6:${currentUser.id}`:'df6',JSON.stringify(tasks));
  if(!currentUser)return;
  clearTimeout(syncTimer);setSyncStatus('Saving…','pending');syncTimer=setTimeout(syncTasks,250);
@@ -60,7 +62,7 @@ async function syncTasks(){
  if(syncInProgress){syncAgain=true;return;}
  syncInProgress=true;
  try{
-  deduplicateDrJohnTimeSlots();
+  deduplicateSeededTimeSlots();
   const rows=tasks.map(taskToRow);
   if(rows.length){const {error}=await supabaseClient.from('tasks').upsert(rows,{onConflict:'user_id,id'});if(error)throw error;}
   const currentIds=new Set(tasks.map(task=>String(task.id)));
@@ -89,13 +91,13 @@ async function loadRemoteTasks(){
    const merged=new Map(legacyTasks.map(task=>[String(task.id),task]));
    remoteTasks.forEach(task=>merged.set(String(task.id),task));
    tasks=[...merged.values()];
-   deduplicateDrJohnTimeSlots();
+   deduplicateSeededTimeSlots();
    renderEverything();
    await syncTasks();
  }else{
    createTaskSnapshot('before remote refresh');
    tasks=remoteTasks;
-   const duplicatesRemoved=deduplicateDrJohnTimeSlots();
+   const duplicatesRemoved=deduplicateSeededTimeSlots();
    localStorage.setItem(`df6:${currentUser.id}`,JSON.stringify(tasks));
    renderEverything();
    if(duplicatesRemoved)await syncTasks();else setSyncStatus('Synced','ok');
@@ -153,7 +155,7 @@ seedWeeklyItemsOnce(1,'Take the trash out','df_seed_trash_mondays_2026_once');
 seedWeeklyItemsOnce(2,'Take the trash in','df_seed_trash_tuesdays_2026_once');
 seedWeeklyItemsOnce(2,'Dr. John','df_seed_dr_john_tuesdays_2026_once','10:00','11:30');
 seedWeeklyItemsOnce(4,'Swim class','df_seed_swim_class_thursdays_2026_once','15:20','15:40');
-if(deduplicateDrJohnTimeSlots())save();
+if(deduplicateSeededTimeSlots())save();
 
 function createTaskElement(task,tagName='div',draggable=false){
  const element=document.createElement(tagName);
@@ -462,7 +464,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m11</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m12</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -1123,7 +1125,7 @@ async function applySession(session){
  updateAccountUi();
  if(!currentUser){tasks=[];renderEverything();setSyncStatus(supabaseClient?'Not signed in':'Local only');return;}
  const cachedTasks=localStorage.getItem(`df6:${currentUser.id}`);
- if(cachedTasks){tasks=JSON.parse(cachedTasks);deduplicateDrJohnTimeSlots();renderEverything();}
+ if(cachedTasks){tasks=JSON.parse(cachedTasks);deduplicateSeededTimeSlots();renderEverything();}
  try{
   await loadRemoteTasks();
   taskChannel=supabaseClient.channel(`tasks:${currentUser.id}`).on('postgres_changes',{event:'*',schema:'public',table:'tasks',filter:`user_id=eq.${currentUser.id}`},()=>{
