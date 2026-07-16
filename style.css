@@ -132,4 +132,5 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .auth-primary-action,.backup-primary-action{width:100%;min-height:56px;font-size:1.05rem;font-weight:600}
 .auth-primary-action{margin:4px 0 16px}
 .backup-controls{padding:16px 0;margin-top:12px;border-block:1px solid #ccd5df}.backup-controls h3,.backup-controls p{margin:0 0 8px}.backup-primary-action{margin:4px 0 16px}.backup-secondary-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.auth-secondary-actions{display:flex;gap:8px;margin-top:16px}.auth-secondary-actions button{flex:1 1 auto}
+.change-password-fields{padding:12px;margin:4px 0 16px;border:1px solid #ccd5df;border-radius:8px;background:#f7f9fb}.change-password-fields[hidden]{display:none}.change-password-fields>div{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .confirmation-editor{width:min(380px,100%)}.confirmation-editor h2{margin:0 0 12px}.confirmation-editor p{margin:0 0 20px}.confirmation-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}

@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m9
+// DayFlow v0.8-m10
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -443,7 +443,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m9</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m10</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -996,7 +996,8 @@ document.addEventListener('keydown',event=>{
 
 const accountBtn=document.getElementById('accountBtn'),authDialog=document.getElementById('authDialog'),authForm=document.getElementById('authForm');
 const authEmail=document.getElementById('authEmail'),authPassword=document.getElementById('authPassword'),authError=document.getElementById('authError');
-const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn');
+const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn'),changePasswordBtn=document.getElementById('changePasswordBtn');
+const changePasswordFields=document.getElementById('changePasswordFields'),newPassword=document.getElementById('newPassword'),confirmNewPassword=document.getElementById('confirmNewPassword'),saveNewPasswordBtn=document.getElementById('saveNewPasswordBtn'),cancelChangePasswordBtn=document.getElementById('cancelChangePasswordBtn');
 const downloadBackupBtn=document.getElementById('downloadBackupBtn'),restoreBackupBtn=document.getElementById('restoreBackupBtn'),restoreSnapshotBtn=document.getElementById('restoreSnapshotBtn'),restoreBackupFile=document.getElementById('restoreBackupFile');
 const confirmationDialog=document.getElementById('confirmationDialog'),confirmationMessage=document.getElementById('confirmationMessage'),confirmationYes=document.getElementById('confirmationYes');
 let confirmationResolver=null,confirmationReturnFocus=null;
@@ -1062,12 +1063,26 @@ restoreBackupFile.onchange=async()=>{
  finally{restoreBackupFile.value='';}
 };
 function updateAccountUi(){
- accountBtn.textContent=currentUser?currentUser.email:'Connect';signOutBtn.hidden=!currentUser;signUpBtn.hidden=Boolean(currentUser);
+ accountBtn.textContent=currentUser?currentUser.email:'Connect';signOutBtn.hidden=!currentUser;changePasswordBtn.hidden=!currentUser;signUpBtn.hidden=Boolean(currentUser);
  authPassword.closest('label').hidden=Boolean(currentUser);authEmail.closest('label').hidden=Boolean(currentUser);
  authForm.querySelector('button[type="submit"]').hidden=Boolean(currentUser);
+ if(!currentUser)closeChangePasswordFields();
 }
+function closeChangePasswordFields(){changePasswordFields.hidden=true;newPassword.value='';confirmNewPassword.value='';}
+changePasswordBtn.onclick=()=>{authError.textContent='';changePasswordFields.hidden=false;newPassword.focus();};
+cancelChangePasswordBtn.onclick=closeChangePasswordFields;
+saveNewPasswordBtn.onclick=async()=>{
+ const password=newPassword.value;
+ if(password.length<6){authError.textContent='The new password must be at least 6 characters.';newPassword.focus();return;}
+ if(password!==confirmNewPassword.value){authError.textContent='The new passwords do not match.';confirmNewPassword.focus();return;}
+ saveNewPasswordBtn.disabled=true;authError.textContent='Changing password…';
+ const {error}=await supabaseClient.auth.updateUser({password});
+ saveNewPasswordBtn.disabled=false;
+ if(error){authError.textContent=error.message;return;}
+ closeChangePasswordFields();authError.textContent='Password changed successfully.';
+};
 function openAuthDialog(){authError.textContent=supabaseClient?'':'Add your Supabase URL and publishable key to supabase-config.js first.';updateAccountUi();authDialog.hidden=false;if(!currentUser)authEmail.focus();}
-function closeAuthDialog(){authDialog.hidden=true;authError.textContent='';}
+function closeAuthDialog(){authDialog.hidden=true;authError.textContent='';closeChangePasswordFields();}
 accountBtn.onclick=openAuthDialog;
 androidAccount.onclick=openAuthDialog;
 authDialog.querySelectorAll('[data-auth-cancel]').forEach(button=>button.onclick=closeAuthDialog);

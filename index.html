@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m9</title>
-<link rel="stylesheet" href="style.css?v=0.8-m9">
+<title>DayFlow v0.8-m10</title>
+<link rel="stylesheet" href="style.css?v=0.8-m10">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m9</span></div>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m10</span></div>
 <div class="desktop-actions"><button id="todayBtn">Today</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
 <nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button">About</button></nav>
 <form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
@@ -41,6 +41,11 @@
 <label class="editor-field">Password<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required></label>
 <button class="auth-primary-action" type="submit">Sign in</button>
 <p id="authError" class="editor-error" aria-live="polite"></p>
+<div id="changePasswordFields" class="change-password-fields" hidden>
+<label class="editor-field">New password<input id="newPassword" type="password" autocomplete="new-password" minlength="6"></label>
+<label class="editor-field">Confirm new password<input id="confirmNewPassword" type="password" autocomplete="new-password" minlength="6"></label>
+<div><button id="cancelChangePasswordBtn" type="button">Cancel</button><button id="saveNewPasswordBtn" type="button">Save password</button></div>
+</div>
 <div class="backup-controls" role="region" aria-labelledby="backupTitle">
 <h3 id="backupTitle">Data backup</h3>
 <p>Save a copy to this device, or merge tasks from an earlier DayFlow backup.</p>
@@ -48,7 +53,7 @@
 <div class="backup-secondary-actions"><button id="restoreBackupBtn" type="button">Restore file</button><button id="restoreSnapshotBtn" type="button">Restore latest snapshot</button></div>
 <input id="restoreBackupFile" type="file" accept="application/json,.json" hidden>
 </div>
-<div class="auth-secondary-actions"><button id="signOutBtn" type="button" class="danger" hidden>Sign out</button><button id="signUpBtn" type="button">Create account</button></div>
+<div class="auth-secondary-actions"><button id="signOutBtn" type="button" class="danger" hidden>Sign out</button><button id="changePasswordBtn" type="button" hidden>Change password</button><button id="signUpBtn" type="button">Create account</button></div>
 </form>
 </div>
 <div id="confirmationDialog" class="modal" hidden>
@@ -75,5 +80,5 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m9"></script>
+<script src="app.js?v=0.8-m10"></script>
 </body></html>
