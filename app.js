@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m13
+// DayFlow v0.8-m14
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -278,6 +278,10 @@ const androidSearchForm=document.getElementById('androidSearchForm');
 const androidSearch=document.getElementById('androidSearch');
 const androidSearchCancel=document.getElementById('androidSearchCancel');
 const androidPanel=document.getElementById('androidPanel');
+const desktopFindBtn=document.getElementById('desktopFindBtn');
+const desktopSearchDialog=document.getElementById('desktopSearchDialog');
+const desktopSearch=document.getElementById('desktopSearch');
+const desktopSearchResults=document.getElementById('desktopSearchResults');
 let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
 
 function closeAndroidPanel(){
@@ -317,51 +321,55 @@ function searchResultDetail(task){
  return task.time!=null?`${day} · ${formatTimeRange(task.time,task.endTime)}`:`${day} · All Day`;
 }
 
-function renderAndroidSearchResults(){
- androidPanel.hidden=false;
- androidPanel.replaceChildren();
- const query=androidSearch.value.trim().toLocaleLowerCase();
+function renderSearchResults(searchInput,container,onSelect){
+ container.replaceChildren();
+ const query=searchInput.value.trim().toLocaleLowerCase();
  if(!query){
   const message=document.createElement('p');
-  message.className='android-search-message';
+  message.className='search-message';
   message.textContent='Type to search all tasks.';
-  androidPanel.append(message);
+  container.append(message);
   return;
  }
  const matches=tasks.filter(task=>`${task.title} ${task.notes||''}`.toLocaleLowerCase().includes(query)).sort(compareTaskSchedule);
  if(!matches.length){
   const message=document.createElement('p');
-  message.className='android-search-message';
+  message.className='search-message';
   message.textContent='No matching tasks.';
-  androidPanel.append(message);
+  container.append(message);
   return;
  }
  const results=document.createElement('div');
- results.className='android-search-results';
+ results.className='search-results';
  matches.forEach(task=>{
   const result=document.createElement('button');
   result.type='button';
-  result.className='android-search-result';
+  result.className='search-result';
   const title=document.createElement('strong');
   title.textContent=task.title;
   const detail=document.createElement('small');
   detail.textContent=searchResultDetail(task);
   result.append(title,detail);
-  result.onclick=()=>{
-   if(task.date){
-    const [year,month,date]=task.date.split('-').map(Number);
-    mobileAgendaStart=new Date(year,month-1,date);
-    mobileAgendaDayCount=10;
-    renderMobileAgenda();
-   }
-   androidSearch.value='';
-   closeAndroidPanel();
-   showAndroidButtons();
-   openAppointmentEditor(task);
-  };
+  result.onclick=()=>onSelect(task);
   results.append(result);
  });
- androidPanel.append(results);
+ container.append(results);
+}
+
+function renderAndroidSearchResults(){
+ androidPanel.hidden=false;
+ renderSearchResults(androidSearch,androidPanel,task=>{
+  if(task.date){
+   const [year,month,date]=task.date.split('-').map(Number);
+   mobileAgendaStart=new Date(year,month-1,date);
+   mobileAgendaDayCount=10;
+   renderMobileAgenda();
+  }
+  androidSearch.value='';
+  closeAndroidPanel();
+  showAndroidButtons();
+  openAppointmentEditor(task);
+ });
 }
 
 androidFind.onclick=()=>{
@@ -384,6 +392,29 @@ androidSearchCancel.onclick=()=>{
  closeAndroidPanel();
  showAndroidButtons();
 };
+
+function closeDesktopSearch(){
+ desktopSearchDialog.hidden=true;
+ desktopSearch.value='';
+ desktopSearchResults.replaceChildren();
+ desktopFindBtn.focus();
+}
+function renderDesktopSearchResults(){
+ renderSearchResults(desktopSearch,desktopSearchResults,task=>{
+  closeDesktopSearch();
+  openAppointmentEditor(task);
+ });
+}
+desktopFindBtn.onclick=()=>{
+ desktopSearchDialog.hidden=false;
+ renderDesktopSearchResults();
+ desktopSearch.focus();
+};
+desktopSearch.addEventListener('input',renderDesktopSearchResults);
+desktopSearchDialog.querySelectorAll('[data-search-cancel]').forEach(element=>element.onclick=closeDesktopSearch);
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!desktopSearchDialog.hidden){event.preventDefault();closeDesktopSearch();}
+});
 
 function renderAndroidCalendar(){
  androidPanel.hidden=false;
@@ -464,7 +495,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m13</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m14</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
