@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m6
+// DayFlow v0.8-m7
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -88,6 +88,12 @@ async function loadRemoteTasks(){
 }
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+function daysFromToday(date){
+ const today=new Date();
+ const dateUtc=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());
+ const todayUtc=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());
+ return Math.round((dateUtc-todayUtc)/86400000);
+}
 
 function compareTaskTitles(a,b){
  return a.title.localeCompare(b.title,undefined,{sensitivity:'base',numeric:true});
@@ -186,7 +192,13 @@ function renderAllDay(){
 }
 
 function renderSelectedDay(){
- dayTitle.textContent=sel.toDateString();
+ const dateLabel=document.createElement('span');
+ dateLabel.textContent=sel.toDateString();
+ const dayOffset=document.createElement('span');
+ dayOffset.className='day-title-offset';
+ dayOffset.textContent=String(daysFromToday(sel));
+ dayOffset.title='Days from today';
+ dayTitle.replaceChildren(dateLabel,dayOffset);
  renderAllDay();
  renderTimeline();
 }
@@ -431,7 +443,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m6</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m7</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -506,12 +518,9 @@ function renderMobileAgenda(){
   const dateLabel=date.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
   const headingDate=document.createElement('span');
   headingDate.textContent=dateLabel;
-  const today=new Date();
-  const dateUtc=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());
-  const todayUtc=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());
   const headingOffset=document.createElement('span');
   headingOffset.className='agenda-day-offset';
-  headingOffset.textContent=String(Math.round((dateUtc-todayUtc)/86400000));
+  headingOffset.textContent=String(daysFromToday(date));
   heading.append(headingDate,headingOffset);
   day.append(heading);
 

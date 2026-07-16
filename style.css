@@ -13,6 +13,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "day" "calendar" "agenda"}
 .inbox-panel{grid-area:inbox}
 .day-panel{grid-area:day}
+.day-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.day-title-offset{flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums}
 .calendar-panel{grid-area:calendar}
 .mobile-agenda-panel{display:none;grid-area:agenda}
 .agenda-day{margin-bottom:18px;border:1px solid #ccd5df;border-radius:8px;overflow:hidden}
