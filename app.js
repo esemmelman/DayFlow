@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m8
+// DayFlow v0.8-m9
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -443,7 +443,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m8</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m9</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -998,6 +998,30 @@ const accountBtn=document.getElementById('accountBtn'),authDialog=document.getEl
 const authEmail=document.getElementById('authEmail'),authPassword=document.getElementById('authPassword'),authError=document.getElementById('authError');
 const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn');
 const downloadBackupBtn=document.getElementById('downloadBackupBtn'),restoreBackupBtn=document.getElementById('restoreBackupBtn'),restoreSnapshotBtn=document.getElementById('restoreSnapshotBtn'),restoreBackupFile=document.getElementById('restoreBackupFile');
+const confirmationDialog=document.getElementById('confirmationDialog'),confirmationMessage=document.getElementById('confirmationMessage'),confirmationYes=document.getElementById('confirmationYes');
+let confirmationResolver=null,confirmationReturnFocus=null;
+
+function finishConfirmation(confirmed){
+ if(!confirmationResolver)return;
+ const resolve=confirmationResolver;
+ confirmationResolver=null;
+ confirmationDialog.hidden=true;
+ resolve(confirmed);
+ confirmationReturnFocus?.focus();
+ confirmationReturnFocus=null;
+}
+function requestConfirmation(message){
+ confirmationMessage.textContent=message;
+ confirmationReturnFocus=document.activeElement;
+ confirmationDialog.hidden=false;
+ confirmationYes.focus();
+ return new Promise(resolve=>{confirmationResolver=resolve;});
+}
+confirmationYes.onclick=()=>finishConfirmation(true);
+confirmationDialog.querySelectorAll('[data-confirm-no]').forEach(button=>button.onclick=()=>finishConfirmation(false));
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!confirmationDialog.hidden){event.preventDefault();finishConfirmation(false);}
+});
 
 function mergeRestoredTasks(imported){
  createTaskSnapshot('before backup restore');
@@ -1006,7 +1030,8 @@ function mergeRestoredTasks(imported){
  tasks=[...merged.values()];save();renderEverything();
 }
 
-downloadBackupBtn.onclick=()=>{
+downloadBackupBtn.onclick=async()=>{
+ if(!await requestConfirmation('Do you want to download a backup now?'))return;
  const backup={format:'dayflow-backup',version:1,exportedAt:new Date().toISOString(),tasks};
  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob),link=document.createElement('a');
@@ -1014,8 +1039,11 @@ downloadBackupBtn.onclick=()=>{
  document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
  authError.textContent=`Backup downloaded with ${tasks.length} tasks.`;
 };
-restoreBackupBtn.onclick=()=>restoreBackupFile.click();
-restoreSnapshotBtn.onclick=()=>{
+restoreBackupBtn.onclick=async()=>{
+ if(await requestConfirmation('Do you want to choose a backup file to restore?'))restoreBackupFile.click();
+};
+restoreSnapshotBtn.onclick=async()=>{
+ if(!await requestConfirmation('Do you want to restore the latest device snapshot?'))return;
  const snapshots=JSON.parse(localStorage.getItem(snapshotStorageKey())||'[]');
  if(!snapshots.length){authError.textContent='No automatic snapshot is available on this device yet.';return;}
  mergeRestoredTasks(snapshots[0].tasks);

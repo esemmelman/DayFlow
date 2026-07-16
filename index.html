@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m8</title>
-<link rel="stylesheet" href="style.css?v=0.8-m8">
+<title>DayFlow v0.8-m9</title>
+<link rel="stylesheet" href="style.css?v=0.8-m9">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m8</span></div>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m9</span></div>
 <div class="desktop-actions"><button id="todayBtn">Today</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
 <nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button">About</button></nav>
 <form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
@@ -51,6 +51,14 @@
 <div class="auth-secondary-actions"><button id="signOutBtn" type="button" class="danger" hidden>Sign out</button><button id="signUpBtn" type="button">Create account</button></div>
 </form>
 </div>
+<div id="confirmationDialog" class="modal" hidden>
+<div class="modal-backdrop" data-confirm-no></div>
+<div class="appointment-editor confirmation-editor" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" aria-describedby="confirmationMessage">
+<h2 id="confirmationTitle">Please confirm</h2>
+<p id="confirmationMessage"></p>
+<div class="confirmation-actions"><button type="button" data-confirm-no>No</button><button id="confirmationYes" type="button">Yes</button></div>
+</div>
+</div>
 <div id="appointmentEditor" class="modal" hidden>
 <div class="modal-backdrop" data-editor-cancel></div>
 <form id="appointmentForm" class="appointment-editor" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
@@ -67,5 +75,5 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m8"></script>
+<script src="app.js?v=0.8-m9"></script>
 </body></html>
