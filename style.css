@@ -129,4 +129,6 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android-search-result small{color:#52606d}
 @media (max-width:599px) and (pointer:coarse){.day-panel,.calendar-panel{display:none}.mobile-agenda-panel{display:block;padding:8px;border-right:0;overflow:visible}}
 .sync-status{font-size:.78rem;opacity:.75;align-self:center}.sync-status[data-state="error"]{color:#b42318}.sync-status[data-state="ok"]{color:#177245}.auth-editor{max-width:430px}.auth-editor>p{margin:.25rem 0 1rem}
-.backup-controls{padding:12px 0;margin-top:12px;border-block:1px solid #ccd5df}.backup-controls h3,.backup-controls p{margin:0 0 8px}.backup-controls>div{display:flex;flex-wrap:wrap;gap:8px}.backup-controls button{flex:1 1 150px}
+.auth-primary-action,.backup-primary-action{width:100%;min-height:56px;font-size:1.05rem;font-weight:600}
+.auth-primary-action{margin:4px 0 16px}
+.backup-controls{padding:16px 0;margin-top:12px;border-block:1px solid #ccd5df}.backup-controls h3,.backup-controls p{margin:0 0 8px}.backup-primary-action{margin:4px 0 16px}.backup-secondary-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.auth-secondary-actions{display:flex;gap:8px;margin-top:16px}.auth-secondary-actions button{flex:1 1 auto}
