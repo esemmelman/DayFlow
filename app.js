@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m12
+// DayFlow v0.8-m13
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -23,7 +23,7 @@ function setSyncStatus(message,state=''){
  if(status){status.textContent=message;status.dataset.state=state;}
 }
 function deduplicateSeededTimeSlots(){
- const deduplicatedTitles=new Set(['dr. john','swim class']);
+ const deduplicatedTitles=new Set(['dr. john','swim class','take the trash in','take the trash out']);
  const occupiedSlots=new Set();
  const originalCount=tasks.length;
  tasks=tasks.filter(task=>{
@@ -464,7 +464,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m12</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m13</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
