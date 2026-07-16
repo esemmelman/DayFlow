@@ -72,6 +72,12 @@ body.touch-dragging{user-select:none}
 .editor-actions{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;margin-top:16px}
 .danger{background:#c0392b}
 .editor-error{min-height:1.2em;margin:8px 0 0;color:#c0392b}
+@media (min-width:600px){#appointmentForm .editor-actions{grid-template-columns:auto 1fr auto}
+#appointmentForm .editor-actions span{display:none}
+#editorDelete{grid-column:1}
+#appointmentForm .editor-actions button[type="submit"]{grid-column:2}
+#appointmentForm .editor-actions [data-editor-cancel]{grid-column:3}
+}
 @media (min-width:900px){.layout{grid-template-columns:minmax(220px,.8fr) minmax(0,1.6fr) minmax(300px,1fr);grid-template-areas:"inbox day calendar";height:calc(100vh - 56px)}
 aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .calendar-panel{border-right:0}
