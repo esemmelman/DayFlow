@@ -109,6 +109,11 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .android-add-form[hidden],.android .android-search-form[hidden],.android .android-nav[hidden]{display:none}
 .android .android-add-form input{width:100%;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
 .android .android-search-form input{min-width:0;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
+.android #appointmentForm.is-editing .editor-actions{grid-template-columns:1fr 1fr}
+.android #appointmentForm.is-editing .editor-actions span{display:none}
+.android #appointmentForm.is-editing .editor-actions button[type="submit"]{grid-column:1/-1;grid-row:1}
+.android #appointmentForm.is-editing #editorDelete{grid-column:1;grid-row:2}
+.android #appointmentForm.is-editing .editor-actions [data-editor-cancel]{grid-column:2;grid-row:2}
 .android .android-panel{display:block}
 .android .android-panel[hidden]{display:none}
 .android .inbox-panel{padding:0 8px;border-bottom:0}

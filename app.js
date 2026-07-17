@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m14
+// DayFlow v0.8-m15
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -495,7 +495,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m14</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m15</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -973,6 +973,7 @@ function updateEditorTimeFields(){
 function openAppointmentEditor(task=null,defaults={}){
  editorReturnFocus=document.activeElement;
  editingAppointmentId=task?.id||null;
+ appointmentForm.classList.toggle('is-editing',Boolean(task));
  clearInboxAfterSave=Boolean(defaults.clearInbox);
  const selectedTime=task?.time??defaults.time??null;
  editorTaskTitle.value=task?.title??defaults.title??'';
