@@ -100,7 +100,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .task[draggable="true"]{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 }
 .android .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "agenda";height:auto}
-.android .toolbar{padding:4px 8px}
+.android .toolbar{position:sticky;top:0;z-index:5;padding:4px 8px}
 .android .logo,.android .desktop-actions{display:none}
 .android .android-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%}
 .android .android-nav button{min-width:0;padding-inline:4px;white-space:nowrap;font-size:.9rem}
