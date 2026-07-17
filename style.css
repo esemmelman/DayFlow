@@ -121,6 +121,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android #inbox{margin:0}
 .android .day-panel,.android .calendar-panel{display:none}
 .android .mobile-agenda-panel{display:block;padding:0 8px 8px;border-right:0;overflow:visible}
+.android #mobileAgenda{scroll-margin-top:56px}
 .android-calendar-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .android-calendar-header h2{margin:0;font-size:1.2rem}
 .android-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px;touch-action:pan-y}
