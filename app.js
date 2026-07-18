@@ -173,10 +173,24 @@ function createTaskElement(task,tagName='div',draggable=false){
   title.append(noteIndicator);
  }
  if(task.date&&task.time!==null&&task.time!==undefined){
+  const timeDetails=document.createElement('span');
+  timeDetails.className='task-time-details';
   const time=document.createElement('span');
   time.className='task-time';
   time.textContent=formatTimeRange(task.time,task.endTime);
-  element.append(time);
+  timeDetails.append(time);
+  const minutesUntil=document.createElement('span');
+  minutesUntil.className='minutes-until';
+  minutesUntil.dataset.date=task.date;
+  minutesUntil.dataset.startTime=toTimeValue(task.time);
+  minutesUntil.title='Minutes until start';
+  minutesUntil.setAttribute('aria-label','Minutes until start');
+  const remaining=minutesUntilStart(minutesUntil.dataset.startTime);
+  const isToday=task.date===key(new Date());
+  minutesUntil.textContent=isToday&&remaining>0?String(remaining):'';
+  minutesUntil.hidden=!isToday||remaining<=0;
+  timeDetails.append(minutesUntil);
+  element.append(timeDetails);
  }
  element.style.setProperty('--appointment-color',task.color||(task.date?'#2f80ed':'#ccd5df'));
  element.tabIndex=0;
@@ -956,6 +970,27 @@ function formatTime(time){
 function formatTimeRange(start,end){
  return end?`${formatTime(start)}–${formatTime(end)}`:formatTime(start);
 }
+
+function minutesUntilStart(startTime,now=new Date()){
+ const [hour,minute]=startTime.split(':').map(Number);
+ const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hour,minute);
+ return Math.ceil((start-now)/60000);
+}
+
+function updateMinutesUntil(){
+ const now=new Date();
+ document.querySelectorAll('.minutes-until').forEach(element=>{
+  const minutes=minutesUntilStart(element.dataset.startTime,now);
+  const isToday=element.dataset.date===key(now);
+  element.textContent=isToday&&minutes>0?String(minutes):'';
+  element.hidden=!isToday||minutes<=0;
+ });
+}
+
+setInterval(updateMinutesUntil,30000);
+document.addEventListener('visibilitychange',()=>{
+ if(!document.hidden)updateMinutesUntil();
+});
 
 function defaultEndTime(start){
  const value=toTimeValue(start);
