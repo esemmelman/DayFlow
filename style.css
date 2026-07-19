@@ -116,7 +116,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android #appointmentForm.is-editing .editor-actions button[type="submit"]{grid-column:1/-1;grid-row:1}
 .android #appointmentForm.is-editing #editorDelete{grid-column:1;grid-row:2}
 .android #appointmentForm.is-editing .editor-actions [data-editor-cancel]{grid-column:2;grid-row:2}
-.android .android-panel{display:block}
+.android .android-panel{display:block;scroll-margin-top:56px}
 .android .android-panel[hidden]{display:none}
 .android .inbox-panel{padding:0 8px;border-bottom:0}
 .android .inbox-panel .new{display:none}
