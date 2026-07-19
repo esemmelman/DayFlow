@@ -501,9 +501,10 @@ function enableHorizontalMonthSwipe(element){
 }
 
 androidCal.onclick=()=>{
- if(!androidPanel.hidden&&androidPanel.querySelector('.android-calendar-grid')){closeAndroidPanel();return;}
+ moveToToday();
  androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
  renderAndroidCalendar();
+ requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 
 androidAbout.onclick=()=>{
@@ -513,7 +514,20 @@ androidAbout.onclick=()=>{
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
-todayBtn.onclick=()=>{t=new Date();y=t.getFullYear();m=t.getMonth();sel=new Date(t);mobileAgendaStart=new Date(t);mobileAgendaStart.setHours(0,0,0,0);mobileAgendaDayCount=10;drawCal();renderSelectedDay();renderMobileAgenda();}
+function moveToToday(){
+ t=new Date();
+ y=t.getFullYear();
+ m=t.getMonth();
+ sel=new Date(t);
+ mobileAgendaStart=new Date(t);
+ mobileAgendaStart.setHours(0,0,0,0);
+ mobileAgendaDayCount=10;
+ drawCal();
+ renderSelectedDay();
+ renderMobileAgenda();
+}
+
+todayBtn.onclick=moveToToday;
 for(let h=7;h<=20;h++){
  let r=document.createElement('div');
  r.className='hour';
