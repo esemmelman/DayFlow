@@ -501,6 +501,10 @@ function enableHorizontalMonthSwipe(element){
 }
 
 androidCal.onclick=()=>{
+ if(!androidPanel.hidden&&androidPanel.querySelector('.android-calendar-grid')){
+  closeAndroidPanel();
+  return;
+ }
  moveToToday();
  androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
  renderAndroidCalendar();
