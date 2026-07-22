@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m18
+// DayFlow v0.8-m19
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -525,7 +525,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m18</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m19</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
