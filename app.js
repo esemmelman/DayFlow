@@ -359,11 +359,22 @@ function renderSearchResults(searchInput,container,onSelect){
   const result=document.createElement('button');
   result.type='button';
   result.className='search-result';
+  const heading=document.createElement('span');
+  heading.className='search-result-heading';
   const title=document.createElement('strong');
   title.textContent=task.title;
+  heading.append(title);
+  if(task.date){
+   const [year,month,date]=task.date.split('-').map(Number);
+   const dayOffset=document.createElement('span');
+   dayOffset.className='search-result-offset';
+   dayOffset.textContent=String(daysFromToday(new Date(year,month-1,date)));
+   dayOffset.title='Days from today';
+   heading.append(dayOffset);
+  }
   const detail=document.createElement('small');
   detail.textContent=searchResultDetail(task);
-  result.append(title,detail);
+  result.append(heading,detail);
   result.onclick=()=>onSelect(task);
   results.append(result);
  });
