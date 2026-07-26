@@ -8,9 +8,22 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .logo{font-size:28px;font-weight:700}
 .version{font-size:.5em;font-weight:600;color:#52606d;vertical-align:middle}
 .android-nav,.android-add-form,.android-search-form{display:none}
+.desktop-actions{display:flex;align-items:center;gap:8px}
 .android-panel{background:#fff;border-bottom:1px solid #ddd;padding:10px}
 .android-panel[hidden]{display:none}
 .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "day" "calendar" "agenda"}
+.layout[hidden],.calendar-layout-panel[hidden]{display:none}
+.calendar-layout-panel{padding:14px;background:#eef2f7;overflow:auto}
+.calendar-layout-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.calendar-layout-bar h2{margin:0;text-align:center}
+.calendar-layout{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;min-width:700px}
+.calendar-layout-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-column:1/-1;gap:4px;align-items:stretch}
+.calendar-layout-day{min-width:0;min-height:100px;padding:6px;background:#fff;border:1px solid #ccd5df;border-radius:6px}
+.calendar-layout-day.outside-month{background:#f2f4f7;color:#7b8794}
+.calendar-layout-day.today{outline:3px solid #2f80ed;outline-offset:-3px}
+.calendar-layout-date{display:block;text-align:center;margin-bottom:5px;font-size:1.05rem}
+.calendar-layout-item{display:block;width:100%;min-height:0;margin:3px 0;padding:4px 6px;border-radius:5px;background:var(--appointment-color,#2f80ed);color:#fff;text-align:left;line-height:1.2;overflow-wrap:anywhere}
+.calendar-layout-item-time{font-size:.78em;font-weight:700;white-space:nowrap}
 .inbox-panel{grid-area:inbox}
 .day-panel{grid-area:day}
 .day-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -104,8 +117,14 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "agenda";height:auto}
 .android .toolbar{position:sticky;top:0;z-index:5;padding:4px 8px}
 .android .logo,.android .desktop-actions{display:none}
-.android .android-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%}
-.android .android-nav button{min-width:0;padding-inline:4px;white-space:nowrap;font-size:.9rem}
+.android .android-nav{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%}
+.android .android-nav button{min-width:0;padding-inline:2px;white-space:nowrap;font-size:.82rem}
+.android .calendar-layout-panel{padding:8px;overflow-x:auto}
+.android .calendar-layout{min-width:0;gap:2px}
+.android .calendar-layout-week{gap:2px}
+.android .calendar-layout-day{padding:3px;min-height:76px}
+.android .calendar-layout-item{padding:3px 2px;font-size:.72rem}
+.android .calendar-layout-item-time{display:block;white-space:normal}
 .android .android-add-form{display:block;width:100%}
 .android .android-search-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;width:100%}
 .android .android-add-form[hidden],.android .android-search-form[hidden],.android .android-nav[hidden]{display:none}

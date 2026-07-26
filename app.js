@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m19
+// DayFlow v0.8-m20
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -79,7 +79,7 @@ async function syncTasks(){
  }catch(error){console.error('DayFlow sync failed',error);setSyncStatus('Sync failed','error');}
  finally{syncInProgress=false;if(syncAgain){syncAgain=false;syncTasks();}}
 }
-function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();}
+function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();if(!calendarLayoutPanel.hidden)renderCalendarLayout();}
 async function loadRemoteTasks(){
  setSyncStatus('Loading…','pending');
  const {data,error}=await supabaseClient.from('tasks').select('*').order('created_at');
@@ -283,6 +283,7 @@ newTask.addEventListener('keydown',event=>{
 const androidNav=document.getElementById('androidNav');
 const androidAdd=document.getElementById('androidAdd');
 const androidCal=document.getElementById('androidCal');
+const androidCalendarLayout=document.getElementById('androidCalendarLayout');
 const androidFind=document.getElementById('androidFind');
 const androidAbout=document.getElementById('androidAbout');
 const androidAccount=document.getElementById('androidAccount');
@@ -297,6 +298,52 @@ const desktopSearchDialog=document.getElementById('desktopSearchDialog');
 const desktopSearch=document.getElementById('desktopSearch');
 const desktopSearchResults=document.getElementById('desktopSearchResults');
 let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
+const calendarLayoutBtn=document.getElementById('calendarLayoutBtn');
+const calendarLayoutPanel=document.getElementById('calendarLayoutPanel');
+const calendarLayoutTitle=document.getElementById('calendarLayoutTitle');
+const calendarLayout=document.getElementById('calendarLayout');
+const calendarLayoutPrev=document.getElementById('calendarLayoutPrev');
+const calendarLayoutNext=document.getElementById('calendarLayoutNext');
+const mainLayout=document.querySelector('.layout');
+let calendarLayoutMonth=new Date(t.getFullYear(),t.getMonth(),1);
+
+function renderCalendarLayout(){
+ const year=calendarLayoutMonth.getFullYear(),month=calendarLayoutMonth.getMonth();
+ calendarLayoutTitle.textContent=calendarLayoutMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+ calendarLayout.replaceChildren();
+ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(label=>{const heading=document.createElement('div');heading.className='dow';heading.textContent=label;calendarLayout.append(heading);});
+ const first=new Date(year,month,1);
+ first.setDate(first.getDate()-((first.getDay()+6)%7));
+ const last=new Date(year,month+1,0);
+ last.setDate(last.getDate()+(7-(last.getDay()||7)));
+ for(const weekStart=new Date(first);weekStart<=last;weekStart.setDate(weekStart.getDate()+7)){
+  const week=document.createElement('div');week.className='calendar-layout-week';
+  for(let offset=0;offset<7;offset++){
+   const date=new Date(weekStart);date.setDate(weekStart.getDate()+offset);
+   const dateKey=key(date),day=document.createElement('div');day.className='calendar-layout-day';
+   if(date.getMonth()!==month)day.classList.add('outside-month');
+   if(dateKey===key(new Date()))day.classList.add('today');
+   const number=document.createElement('b');number.className='calendar-layout-date';number.textContent=String(date.getDate());day.append(number);
+   tasks.filter(task=>task.date===dateKey).sort(compareTaskSchedule).forEach(task=>{
+    const item=document.createElement('button');item.type='button';item.className='calendar-layout-item';item.style.setProperty('--appointment-color',task.color||'#2f80ed');
+    if(task.time!=null){const time=document.createElement('span');time.className='calendar-layout-item-time';time.textContent=`${formatTimeRange(task.time,task.endTime)} `;item.append(time);}
+    item.append(document.createTextNode(task.title));item.onclick=()=>openAppointmentEditor(task);day.append(item);
+   });
+   week.append(day);
+  }
+  calendarLayout.append(week);
+ }
+}
+
+function setCalendarLayoutOpen(open){
+ calendarLayoutPanel.hidden=!open;mainLayout.hidden=open;calendarLayoutBtn.setAttribute('aria-pressed',String(open));androidCalendarLayout.setAttribute('aria-pressed',String(open));
+ if(open){closeAndroidPanel();showAndroidButtons();renderCalendarLayout();calendarLayoutPanel.scrollIntoView({block:'start'});}
+}
+
+calendarLayoutBtn.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
+androidCalendarLayout.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
+calendarLayoutPrev.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()-1);renderCalendarLayout();};
+calendarLayoutNext.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()+1);renderCalendarLayout();};
 
 function closeAndroidPanel(){
  androidPanel.hidden=true;
@@ -525,7 +572,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m19</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m20</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -537,9 +584,11 @@ function moveToToday(){
  mobileAgendaStart=new Date(t);
  mobileAgendaStart.setHours(0,0,0,0);
  mobileAgendaDayCount=10;
+ calendarLayoutMonth=new Date(t.getFullYear(),t.getMonth(),1);
  drawCal();
  renderSelectedDay();
  renderMobileAgenda();
+ if(!calendarLayoutPanel.hidden)renderCalendarLayout();
 }
 
 todayBtn.onclick=moveToToday;
