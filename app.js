@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m24
+// DayFlow v0.8-m26
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -326,6 +326,7 @@ function renderCalendarLayout(){
   for(let offset=0;offset<7;offset++){
    const date=new Date(weekStart);date.setDate(weekStart.getDate()+offset);
    const dateKey=key(date),day=document.createElement('div');day.className='calendar-layout-day';
+   day.dataset.date=dateKey;
    if(date.getMonth()!==month)day.classList.add('outside-month');
    if(date<todayStart)day.classList.add('past');
    if(dateKey===key(new Date()))day.classList.add('today');
@@ -366,16 +367,19 @@ calendarLayoutScroll.addEventListener('scroll',()=>{calendarLayoutWeekdaysScroll
 
 calendarLayoutBtn.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
 androidCalendarLayout.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
-function renderCalendarLayoutFromMonday(){
+function renderCalendarLayoutFromFirst(){
  renderCalendarLayout();
  requestAnimationFrame(()=>{
-  calendarLayoutScroll.scrollLeft=0;
-  calendarLayoutWeekdaysScroll.scrollLeft=0;
+  const firstWeekDays=calendarLayout.querySelector('.calendar-layout-week')?.children;
+  const columnWidth=firstWeekDays?.length>1?firstWeekDays[1].offsetLeft-firstWeekDays[0].offsetLeft:150;
+  const firstWeekday=(new Date(calendarLayoutMonth.getFullYear(),calendarLayoutMonth.getMonth(),1).getDay()+6)%7;
+  calendarLayoutScroll.scrollLeft=columnWidth*firstWeekday;
+  calendarLayoutWeekdaysScroll.scrollLeft=calendarLayoutScroll.scrollLeft;
   calendarLayoutPanel.scrollIntoView({block:'start'});
  });
 }
-calendarLayoutPrev.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()-1);renderCalendarLayoutFromMonday();};
-calendarLayoutNext.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()+1);renderCalendarLayoutFromMonday();};
+calendarLayoutPrev.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()-1);renderCalendarLayoutFromFirst();};
+calendarLayoutNext.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()+1);renderCalendarLayoutFromFirst();};
 
 function closeAndroidPanel(){
  androidPanel.hidden=true;
@@ -591,6 +595,13 @@ function enableHorizontalMonthSwipe(element){
 }
 
 androidCal.onclick=()=>{
+ if(!calendarLayoutPanel.hidden){
+  setCalendarLayoutOpen(false);
+  closeAndroidPanel();
+  renderMobileAgenda();
+  requestAnimationFrame(()=>document.getElementById('mobileAgenda').scrollIntoView({block:'start'}));
+  return;
+ }
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-calendar-grid')){
   closeAndroidPanel();
   return;
@@ -604,7 +615,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m24</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m26</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
