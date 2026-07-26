@@ -302,6 +302,7 @@ const calendarLayoutBtn=document.getElementById('calendarLayoutBtn');
 const calendarLayoutPanel=document.getElementById('calendarLayoutPanel');
 const calendarLayoutTitle=document.getElementById('calendarLayoutTitle');
 const calendarLayout=document.getElementById('calendarLayout');
+const calendarLayoutScroll=document.getElementById('calendarLayoutScroll');
 const calendarLayoutPrev=document.getElementById('calendarLayoutPrev');
 const calendarLayoutNext=document.getElementById('calendarLayoutNext');
 const mainLayout=document.querySelector('.layout');
@@ -323,11 +324,14 @@ function renderCalendarLayout(){
    const dateKey=key(date),day=document.createElement('div');day.className='calendar-layout-day';
    if(date.getMonth()!==month)day.classList.add('outside-month');
    if(dateKey===key(new Date()))day.classList.add('today');
+   day.title=`Add an item on ${date.toLocaleDateString()}`;
+   day.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:null,allDay:true});
    const number=document.createElement('b');number.className='calendar-layout-date';number.textContent=String(date.getDate());day.append(number);
    tasks.filter(task=>task.date===dateKey).sort(compareTaskSchedule).forEach(task=>{
     const item=document.createElement('button');item.type='button';item.className='calendar-layout-item';item.style.setProperty('--appointment-color',task.color||'#2f80ed');
-    if(task.time!=null){const time=document.createElement('span');time.className='calendar-layout-item-time';time.textContent=`${formatTimeRange(task.time,task.endTime)} `;item.append(time);}
-    item.append(document.createTextNode(task.title));item.onclick=()=>openAppointmentEditor(task);day.append(item);
+    if(task.time!=null){const time=document.createElement('span');time.className='calendar-layout-item-time';time.textContent=formatTimeRange(task.time,task.endTime);item.append(time);}
+    const itemTitle=document.createElement('span');itemTitle.className='calendar-layout-item-title';itemTitle.textContent=task.title;item.append(itemTitle);
+    item.onclick=event=>{event.stopPropagation();openAppointmentEditor(task);};day.append(item);
    });
    week.append(day);
   }
@@ -337,7 +341,7 @@ function renderCalendarLayout(){
 
 function setCalendarLayoutOpen(open){
  calendarLayoutPanel.hidden=!open;mainLayout.hidden=open;calendarLayoutBtn.setAttribute('aria-pressed',String(open));androidCalendarLayout.setAttribute('aria-pressed',String(open));
- if(open){closeAndroidPanel();showAndroidButtons();renderCalendarLayout();calendarLayoutPanel.scrollIntoView({block:'start'});}
+ if(open){closeAndroidPanel();showAndroidButtons();renderCalendarLayout();calendarLayoutScroll.scrollLeft=0;calendarLayoutPanel.scrollIntoView({block:'start'});}
 }
 
 calendarLayoutBtn.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
