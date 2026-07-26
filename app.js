@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m20
+// DayFlow v0.8-m21
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -303,6 +303,8 @@ const calendarLayoutPanel=document.getElementById('calendarLayoutPanel');
 const calendarLayoutTitle=document.getElementById('calendarLayoutTitle');
 const calendarLayout=document.getElementById('calendarLayout');
 const calendarLayoutScroll=document.getElementById('calendarLayoutScroll');
+const calendarLayoutWeekdays=document.getElementById('calendarLayoutWeekdays');
+const calendarLayoutWeekdaysScroll=document.getElementById('calendarLayoutWeekdaysScroll');
 const calendarLayoutPrev=document.getElementById('calendarLayoutPrev');
 const calendarLayoutNext=document.getElementById('calendarLayoutNext');
 const mainLayout=document.querySelector('.layout');
@@ -312,7 +314,8 @@ function renderCalendarLayout(){
  const year=calendarLayoutMonth.getFullYear(),month=calendarLayoutMonth.getMonth();
  calendarLayoutTitle.textContent=calendarLayoutMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
  calendarLayout.replaceChildren();
- ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(label=>{const heading=document.createElement('div');heading.className='dow';heading.textContent=label;calendarLayout.append(heading);});
+ calendarLayoutWeekdays.replaceChildren();
+ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(label=>{const heading=document.createElement('div');heading.className='dow';heading.textContent=label;calendarLayoutWeekdays.append(heading);});
  const first=new Date(year,month,1);
  first.setDate(first.getDate()-((first.getDay()+6)%7));
  const last=new Date(year,month+1,0);
@@ -341,8 +344,19 @@ function renderCalendarLayout(){
 
 function setCalendarLayoutOpen(open){
  calendarLayoutPanel.hidden=!open;mainLayout.hidden=open;calendarLayoutBtn.setAttribute('aria-pressed',String(open));androidCalendarLayout.setAttribute('aria-pressed',String(open));
- if(open){closeAndroidPanel();showAndroidButtons();renderCalendarLayout();calendarLayoutScroll.scrollLeft=0;calendarLayoutPanel.scrollIntoView({block:'start'});}
+ if(open){
+  closeAndroidPanel();showAndroidButtons();
+  const today=new Date();calendarLayoutMonth=new Date(today.getFullYear(),today.getMonth(),1);renderCalendarLayout();
+  calendarLayoutPanel.scrollIntoView({block:'start'});
+  requestAnimationFrame(()=>{
+   const weekday=(today.getDay()+6)%7;
+   const columnWidth=calendarLayout.scrollWidth/7;
+   calendarLayoutScroll.scrollLeft=Math.max(0,columnWidth*(weekday+.5)-calendarLayoutScroll.clientWidth/2);
+  });
+ }
 }
+
+calendarLayoutScroll.addEventListener('scroll',()=>{calendarLayoutWeekdaysScroll.scrollLeft=calendarLayoutScroll.scrollLeft;},{passive:true});
 
 calendarLayoutBtn.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
 androidCalendarLayout.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
@@ -576,7 +590,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m20</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m21</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}

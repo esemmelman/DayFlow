@@ -14,10 +14,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"inbox" "day" "calendar" "agenda"}
 .layout[hidden],.calendar-layout-panel[hidden]{display:none}
 .calendar-layout-panel{padding:14px;background:#eef2f7;scroll-margin-top:56px}
+.calendar-layout-sticky{position:sticky;top:0;z-index:4;background:#eef2f7;padding-bottom:4px}
 .calendar-layout-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 .calendar-layout-bar h2{margin:0;text-align:center}
-.calendar-layout-scroll{width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
-.calendar-layout{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:4px;min-width:1050px}
+.calendar-layout-scroll,.calendar-layout-weekdays-scroll{width:100%;overscroll-behavior-inline:contain}
+.calendar-layout-scroll{overflow-x:auto}
+.calendar-layout-weekdays-scroll{overflow:hidden;scrollbar-width:none}
+.calendar-layout-weekdays-scroll::-webkit-scrollbar{display:none}
+.calendar-layout-weekdays{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:4px;min-width:1050px}
+.calendar-layout{display:grid;gap:4px;min-width:1050px}
 .calendar-layout-week{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));grid-column:1/-1;gap:4px;align-items:stretch}
 .calendar-layout-day{min-width:0;min-height:110px;padding:6px;background:#fff;border:1px solid #ccd5df;border-radius:6px;cursor:pointer}
 .calendar-layout-day.outside-month{background:#f2f4f7;color:#7b8794}
@@ -122,7 +127,9 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .android-nav{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%}
 .android .android-nav button{min-width:0;padding-inline:2px;white-space:nowrap;font-size:.82rem}
 .android .calendar-layout-panel{padding:8px}
-.android .calendar-layout{grid-template-columns:repeat(7,140px);min-width:980px;gap:3px}
+.android .calendar-layout-sticky{top:56px}
+.android .calendar-layout-weekdays{grid-template-columns:repeat(7,140px);min-width:980px;gap:3px}
+.android .calendar-layout{min-width:980px;gap:3px}
 .android .calendar-layout-week{grid-template-columns:repeat(7,140px);gap:3px}
 .android .calendar-layout-day{padding:5px;min-height:100px}
 .android .calendar-layout-item{padding:4px;font-size:.8rem}
