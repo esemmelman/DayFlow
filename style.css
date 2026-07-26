@@ -24,10 +24,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .calendar-layout-weekdays{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:4px;min-width:1050px}
 .calendar-layout{display:grid;gap:4px;min-width:1050px}
 .calendar-layout-week{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));grid-column:1/-1;gap:4px;align-items:stretch}
-.calendar-layout-day{min-width:0;min-height:110px;padding:6px;background:#fff;border:1px solid #ccd5df;border-radius:6px;cursor:pointer}
+.calendar-layout-day{position:relative;min-width:0;min-height:110px;padding:6px;background:#fff;border:1px solid #ccd5df;border-radius:6px;cursor:pointer}
 .calendar-layout-day.outside-month{background:#f2f4f7;color:#7b8794}
+.calendar-layout-day.past{background:#e4e7eb;color:#7b8794}
+.calendar-layout-day.past .calendar-layout-item{background:#9aa5b1!important;color:#f5f7fa;opacity:.78}
 .calendar-layout-day.today{outline:3px solid #2f80ed;outline-offset:-3px;scroll-margin-top:150px}
 .calendar-layout-date{display:block;text-align:center;margin-bottom:5px;font-size:1.05rem}
+.calendar-layout-day-offset{position:absolute;top:7px;right:7px;font-size:.72rem;font-weight:400;font-variant-numeric:tabular-nums}
 .calendar-layout-item{display:block;width:100%;min-height:0;margin:3px 0;padding:4px 6px;border-radius:5px;background:var(--appointment-color,#2f80ed);color:#fff;text-align:left;line-height:1.2;overflow:hidden}
 .calendar-layout-item-time,.calendar-layout-item-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .calendar-layout-item-time{font-size:.78em;font-weight:700}

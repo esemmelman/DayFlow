@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m22
+// DayFlow v0.8-m24
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -312,6 +312,7 @@ let calendarLayoutMonth=new Date(t.getFullYear(),t.getMonth(),1);
 
 function renderCalendarLayout(){
  const year=calendarLayoutMonth.getFullYear(),month=calendarLayoutMonth.getMonth();
+ const todayStart=new Date();todayStart.setHours(0,0,0,0);
  calendarLayoutTitle.textContent=calendarLayoutMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
  calendarLayout.replaceChildren();
  calendarLayoutWeekdays.replaceChildren();
@@ -326,10 +327,12 @@ function renderCalendarLayout(){
    const date=new Date(weekStart);date.setDate(weekStart.getDate()+offset);
    const dateKey=key(date),day=document.createElement('div');day.className='calendar-layout-day';
    if(date.getMonth()!==month)day.classList.add('outside-month');
+   if(date<todayStart)day.classList.add('past');
    if(dateKey===key(new Date()))day.classList.add('today');
    day.title=`Add an item on ${date.toLocaleDateString()}`;
    day.onclick=()=>openAppointmentEditor(null,{date:dateKey,time:null,allDay:true});
    const number=document.createElement('b');number.className='calendar-layout-date';number.textContent=String(date.getDate());day.append(number);
+   const dayOffset=document.createElement('span');dayOffset.className='calendar-layout-day-offset';dayOffset.textContent=String(daysFromToday(date));day.append(dayOffset);
    tasks.filter(task=>task.date===dateKey).sort(compareTaskSchedule).forEach(task=>{
     const item=document.createElement('button');item.type='button';item.className='calendar-layout-item';item.style.setProperty('--appointment-color',task.color||'#2f80ed');
     if(task.time!=null){const time=document.createElement('span');time.className='calendar-layout-item-time';time.textContent=formatTimeRange(task.time,task.endTime);item.append(time);}
@@ -363,8 +366,16 @@ calendarLayoutScroll.addEventListener('scroll',()=>{calendarLayoutWeekdaysScroll
 
 calendarLayoutBtn.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
 androidCalendarLayout.onclick=()=>setCalendarLayoutOpen(calendarLayoutPanel.hidden);
-calendarLayoutPrev.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()-1);renderCalendarLayout();};
-calendarLayoutNext.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()+1);renderCalendarLayout();};
+function renderCalendarLayoutFromMonday(){
+ renderCalendarLayout();
+ requestAnimationFrame(()=>{
+  calendarLayoutScroll.scrollLeft=0;
+  calendarLayoutWeekdaysScroll.scrollLeft=0;
+  calendarLayoutPanel.scrollIntoView({block:'start'});
+ });
+}
+calendarLayoutPrev.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()-1);renderCalendarLayoutFromMonday();};
+calendarLayoutNext.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth.getMonth()+1);renderCalendarLayoutFromMonday();};
 
 function closeAndroidPanel(){
  androidPanel.hidden=true;
@@ -593,7 +604,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m22</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m24</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
