@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m21
+// DayFlow v0.8-m22
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -350,8 +350,11 @@ function setCalendarLayoutOpen(open){
   calendarLayoutPanel.scrollIntoView({block:'start'});
   requestAnimationFrame(()=>{
    const weekday=(today.getDay()+6)%7;
-   const columnWidth=calendarLayout.scrollWidth/7;
-   calendarLayoutScroll.scrollLeft=Math.max(0,columnWidth*(weekday+.5)-calendarLayoutScroll.clientWidth/2);
+   const firstWeekDays=calendarLayout.querySelector('.calendar-layout-week')?.children;
+   const columnWidth=firstWeekDays?.length>1?firstWeekDays[1].offsetLeft-firstWeekDays[0].offsetLeft:150;
+   const todayCell=calendarLayout.querySelector('.calendar-layout-day.today');
+   todayCell?.scrollIntoView({block:'start',inline:'nearest'});
+   calendarLayoutScroll.scrollLeft=columnWidth*weekday;
   });
  }
 }
@@ -590,7 +593,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m21</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m22</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
