@@ -32,7 +32,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:
 .calendar-layout-date{display:block;text-align:center;margin-bottom:5px;font-size:1.05rem}
 .calendar-layout-day-offset{position:absolute;top:7px;right:7px;font-size:.72rem;font-weight:400;font-variant-numeric:tabular-nums}
 .calendar-layout-item{display:block;width:100%;min-height:0;margin:3px 0;padding:4px 6px;border-radius:5px;background:var(--appointment-color,#2f80ed);color:#fff;text-align:left;line-height:1.2;overflow:hidden}
-.calendar-layout-item-time,.calendar-layout-item-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calendar-layout-item-time,.calendar-layout-item-title{display:block}
+.calendar-layout-item-time{overflow:hidden;text-overflow:clip;white-space:nowrap}
+.calendar-layout-item-title{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}
 .calendar-layout-item-time{font-size:.78em;font-weight:700}
 .inbox-panel{grid-area:inbox}
 .day-panel{grid-area:day}
