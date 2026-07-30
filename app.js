@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m27
+// DayFlow v0.8-m28
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -353,7 +353,7 @@ function setCalendarLayoutOpen(open){
   const today=new Date();calendarLayoutMonth=new Date(today.getFullYear(),today.getMonth(),1);renderCalendarLayout();
   calendarLayoutPanel.scrollIntoView({block:'start'});
   requestAnimationFrame(()=>{
-   const weekday=(today.getDay()+6)%7;
+   const weekday=usesAndroidAgenda?0:(today.getDay()+6)%7;
    const firstWeekDays=calendarLayout.querySelector('.calendar-layout-week')?.children;
    const columnWidth=firstWeekDays?.length>1?firstWeekDays[1].offsetLeft-firstWeekDays[0].offsetLeft:150;
    const todayCell=calendarLayout.querySelector('.calendar-layout-day.today');
@@ -372,7 +372,7 @@ function renderCalendarLayoutFromFirst(){
  requestAnimationFrame(()=>{
   const firstWeekDays=calendarLayout.querySelector('.calendar-layout-week')?.children;
   const columnWidth=firstWeekDays?.length>1?firstWeekDays[1].offsetLeft-firstWeekDays[0].offsetLeft:150;
-  const firstWeekday=(new Date(calendarLayoutMonth.getFullYear(),calendarLayoutMonth.getMonth(),1).getDay()+6)%7;
+  const firstWeekday=usesAndroidAgenda?0:(new Date(calendarLayoutMonth.getFullYear(),calendarLayoutMonth.getMonth(),1).getDay()+6)%7;
   calendarLayoutScroll.scrollLeft=columnWidth*firstWeekday;
   calendarLayoutWeekdaysScroll.scrollLeft=calendarLayoutScroll.scrollLeft;
   calendarLayoutPanel.scrollIntoView({block:'start'});
@@ -615,7 +615,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m27</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m28</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
