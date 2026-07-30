@@ -100,6 +100,7 @@ body.touch-dragging{user-select:none}
 .editor-times{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .editor-times>*{min-width:0}
 .editor-times input[type="time"]{min-width:0;max-width:100%}
+.reminder-fields{margin:12px 0;padding:10px 12px;border:1px solid #ccd5df;border-radius:8px}.reminder-fields legend{padding:0 5px;font-weight:700}.reminder-fields .editor-check,.reminder-fields .editor-field{margin:4px 0}.reminder-fields small{display:block;color:#52606d}.reminder-channels{display:flex;gap:18px;flex-wrap:wrap}.notification-controls{padding:12px;margin:4px 0 16px;border:1px solid #ccd5df;border-radius:8px;background:#f7f9fb}.notification-controls h3,.notification-controls p{margin:0 0 8px}.notification-controls[hidden]{display:none}
 .editor-actions{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;margin-top:16px}
 .danger{background:#c0392b}
 .editor-error{min-height:1.2em;margin:8px 0 0;color:#c0392b}

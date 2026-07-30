@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m28
+// DayFlow v0.8-m29
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -52,10 +52,10 @@ function save(){
  if(!currentUser)return;
  clearTimeout(syncTimer);setSyncStatus('Saving…','pending');syncTimer=setTimeout(syncTasks,250);
 }
-function taskToRow(task){return {id:String(task.id),user_id:currentUser.id,title:task.title,date:task.date||null,start_time:task.time??null,end_time:task.endTime??null,notes:task.notes||'',color:task.color||'#2f80ed'};}
+function taskToRow(task){return {id:String(task.id),user_id:currentUser.id,title:task.title,date:task.date||null,start_time:task.time??null,end_time:task.endTime??null,notes:task.notes||'',color:task.color||'#2f80ed',reminder_enabled:Boolean(task.reminderEnabled),reminder_minutes:Number(task.reminderMinutes)||45,reminder_email:task.reminderEmail!==false,reminder_push:Boolean(task.reminderPush),timezone:task.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'};}
 function rowToTask(row){
  const date=row.date?row.date.split('-').map(Number).join('-'):null;
- return {id:row.id,title:row.title,date,time:row.start_time?.slice(0,5)??null,endTime:row.end_time?.slice(0,5)??null,notes:row.notes||'',color:row.color||'#2f80ed'};
+ return {id:row.id,title:row.title,date,time:row.start_time?.slice(0,5)??null,endTime:row.end_time?.slice(0,5)??null,notes:row.notes||'',color:row.color||'#2f80ed',reminderEnabled:Boolean(row.reminder_enabled),reminderMinutes:Number(row.reminder_minutes)||45,reminderEmail:row.reminder_email!==false,reminderPush:Boolean(row.reminder_push),timezone:row.timezone||'UTC'};
 }
 async function syncTasks(){
  if(!supabaseClient||!currentUser)return;
@@ -615,7 +615,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m28</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m29</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -1056,6 +1056,10 @@ const editorDate=document.getElementById('editorDate');
 const editorAllDay=document.getElementById('editorAllDay');
 const editorStartTime=document.getElementById('editorStartTime');
 const editorEndTime=document.getElementById('editorEndTime');
+const editorReminderEnabled=document.getElementById('editorReminderEnabled');
+const editorReminderMinutes=document.getElementById('editorReminderMinutes');
+const editorReminderEmail=document.getElementById('editorReminderEmail');
+const editorReminderPush=document.getElementById('editorReminderPush');
 const editorNotes=document.getElementById('editorNotes');
 const editorColor=document.getElementById('editorColor');
 const editorDelete=document.getElementById('editorDelete');
@@ -1124,6 +1128,13 @@ function updateEditorTimeFields(){
  const disabled=editorAllDay.checked||!editorDate.value;
  editorStartTime.disabled=disabled;
  editorEndTime.disabled=disabled;
+ const reminderUnavailable=disabled||!editorStartTime.value;
+ editorReminderEnabled.disabled=reminderUnavailable;
+ if(reminderUnavailable)editorReminderEnabled.checked=false;
+ const reminderOptionsDisabled=reminderUnavailable||!editorReminderEnabled.checked;
+ editorReminderMinutes.disabled=reminderOptionsDisabled;
+ editorReminderEmail.disabled=reminderOptionsDisabled;
+ editorReminderPush.disabled=reminderOptionsDisabled;
 }
 
 function openAppointmentEditor(task=null,defaults={}){
@@ -1137,6 +1148,10 @@ function openAppointmentEditor(task=null,defaults={}){
  editorAllDay.checked=task?Boolean(task.date)&&task.time===null:Boolean(defaults.allDay);
  editorStartTime.value=toTimeValue(selectedTime);
  editorEndTime.value=task?.endTime??defaults.endTime??defaultEndTime(selectedTime);
+ editorReminderEnabled.checked=Boolean(task?.reminderEnabled);
+ editorReminderMinutes.value=String(task?.reminderMinutes||45);
+ editorReminderEmail.checked=task?.reminderEmail!==false;
+ editorReminderPush.checked=Boolean(task?.reminderPush);
  editorNotes.value=task?.notes??'';
  editorColor.value=task?.color??'#2f80ed';
  editorDelete.hidden=!task;
@@ -1168,6 +1183,7 @@ appointmentForm.addEventListener('submit',event=>{
  const date=toDateKey(editorDate.value);
  const isAllDay=editorAllDay.checked;
  const start=editorStartTime.value;
+ const reminderEnabled=Boolean(date&&!isAllDay&&start&&editorReminderEnabled.checked);
 
  if(!title){editorError.textContent='Title is required.';return;}
  if(date&&!isAllDay&&!start){editorError.textContent='Choose a start time or mark this appointment all day.';return;}
@@ -1178,8 +1194,15 @@ appointmentForm.addEventListener('submit',event=>{
   time:date&&!isAllDay?start:null,
   endTime:date&&!isAllDay?editorEndTime.value:null,
   notes:editorNotes.value.trim(),
-  color:editorColor.value
+  color:editorColor.value,
+  reminderEnabled,
+  reminderMinutes:Math.max(1,Math.min(10080,Number(editorReminderMinutes.value)||45)),
+  reminderEmail:reminderEnabled&&editorReminderEmail.checked,
+  reminderPush:reminderEnabled&&editorReminderPush.checked,
+  timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'
  };
+ if(reminderEnabled&&!appointment.reminderEmail&&!appointment.reminderPush){editorError.textContent='Choose email, push, or both for this reminder.';return;}
+ if(reminderEnabled&&!currentUser){editorError.textContent='Connect your DayFlow account before enabling reminders.';return;}
  const existing=tasks.find(task=>task.id===editingAppointmentId);
  if(existing)Object.assign(existing,appointment);
  else tasks.push({id:String(Date.now()+Math.random()),...appointment});
@@ -1198,6 +1221,8 @@ editorDelete.onclick=()=>{
 
 editorAllDay.onchange=updateEditorTimeFields;
 editorDate.onchange=updateEditorTimeFields;
+editorStartTime.onchange=updateEditorTimeFields;
+editorReminderEnabled.onchange=updateEditorTimeFields;
 appointmentEditor.querySelectorAll('[data-editor-cancel]').forEach(button=>button.onclick=closeAppointmentEditor);
 document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&!appointmentEditor.hidden)closeAppointmentEditor();
@@ -1208,6 +1233,7 @@ const authEmail=document.getElementById('authEmail'),authPassword=document.getEl
 const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn'),changePasswordBtn=document.getElementById('changePasswordBtn');
 const changePasswordFields=document.getElementById('changePasswordFields'),newPassword=document.getElementById('newPassword'),confirmNewPassword=document.getElementById('confirmNewPassword'),saveNewPasswordBtn=document.getElementById('saveNewPasswordBtn'),cancelChangePasswordBtn=document.getElementById('cancelChangePasswordBtn');
 const downloadBackupBtn=document.getElementById('downloadBackupBtn'),restoreBackupBtn=document.getElementById('restoreBackupBtn'),restoreSnapshotBtn=document.getElementById('restoreSnapshotBtn'),restoreBackupFile=document.getElementById('restoreBackupFile');
+const notificationControls=document.getElementById('notificationControls'),enablePushBtn=document.getElementById('enablePushBtn'),pushStatus=document.getElementById('pushStatus');
 const confirmationDialog=document.getElementById('confirmationDialog'),confirmationMessage=document.getElementById('confirmationMessage'),confirmationYes=document.getElementById('confirmationYes');
 let confirmationResolver=null,confirmationReturnFocus=null;
 
@@ -1275,8 +1301,43 @@ function updateAccountUi(){
  accountBtn.textContent=currentUser?currentUser.email:'Connect';signOutBtn.hidden=!currentUser;changePasswordBtn.hidden=!currentUser;signUpBtn.hidden=Boolean(currentUser);
  authPassword.closest('label').hidden=Boolean(currentUser);authEmail.closest('label').hidden=Boolean(currentUser);
  authForm.querySelector('button[type="submit"]').hidden=Boolean(currentUser);
+ notificationControls.hidden=!currentUser;
+ if(currentUser)updatePushStatus();
  if(!currentUser)closeChangePasswordFields();
 }
+function urlBase64ToUint8Array(value){
+ const padding='='.repeat((4-value.length%4)%4),base64=(value+padding).replace(/-/g,'+').replace(/_/g,'/');
+ return Uint8Array.from(atob(base64),character=>character.charCodeAt(0));
+}
+async function getPushSubscription(){
+ if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
+ const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m29');
+ return registration.pushManager.getSubscription();
+}
+async function updatePushStatus(){
+ if(!currentUser)return;
+ if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){pushStatus.textContent='Push notifications are not supported by this browser.';enablePushBtn.disabled=true;return;}
+ if(!supabaseSettings.vapidPublicKey){pushStatus.textContent='Push setup is pending: add the VAPID public key to supabase-config.js.';enablePushBtn.disabled=true;return;}
+ try{
+  const subscription=await getPushSubscription();
+  pushStatus.textContent=subscription?'Push notifications are enabled on this device.':'Push notifications are not enabled on this device.';
+  enablePushBtn.textContent=subscription?'Refresh push registration':'Enable push notifications';
+  enablePushBtn.disabled=false;
+ }catch(error){pushStatus.textContent=error.message||'Push notifications require a secure HTTPS connection.';enablePushBtn.disabled=true;}
+}
+enablePushBtn.onclick=async()=>{
+ enablePushBtn.disabled=true;pushStatus.textContent='Enabling push notifications…';
+ try{
+  if(Notification.permission==='denied')throw new Error('Notifications are blocked in this browser’s settings.');
+  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m29');
+  let subscription=await registration.pushManager.getSubscription();
+  if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(supabaseSettings.vapidPublicKey)});
+  const json=subscription.toJSON(),{error}=await supabaseClient.from('push_subscriptions').upsert({user_id:currentUser.id,endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth,user_agent:navigator.userAgent},{onConflict:'user_id,endpoint'});
+  if(error)throw error;
+  pushStatus.textContent='Push notifications are enabled on this device.';
+ }catch(error){pushStatus.textContent=error.message||'Could not enable push notifications.';}
+ finally{enablePushBtn.disabled=false;}
+};
 function closeChangePasswordFields(){changePasswordFields.hidden=true;newPassword.value='';confirmNewPassword.value='';}
 changePasswordBtn.onclick=()=>{authError.textContent='';changePasswordFields.hidden=false;newPassword.focus();};
 cancelChangePasswordBtn.onclick=closeChangePasswordFields;
