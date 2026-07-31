@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m29
+// DayFlow v0.8-m30
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -615,7 +615,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m29</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m30</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -1311,7 +1311,7 @@ function urlBase64ToUint8Array(value){
 }
 async function getPushSubscription(){
  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
- const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m29');
+ const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m30');
  return registration.pushManager.getSubscription();
 }
 async function updatePushStatus(){
@@ -1329,7 +1329,9 @@ enablePushBtn.onclick=async()=>{
  enablePushBtn.disabled=true;pushStatus.textContent='Enabling push notifications…';
  try{
   if(Notification.permission==='denied')throw new Error('Notifications are blocked in this browser’s settings.');
-  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m29');
+  const permission=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;
+  if(permission!=='granted')throw new Error('Notification permission was not granted.');
+  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m30');
   let subscription=await registration.pushManager.getSubscription();
   if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(supabaseSettings.vapidPublicKey)});
   const json=subscription.toJSON(),{error}=await supabaseClient.from('push_subscriptions').upsert({user_id:currentUser.id,endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth,user_agent:navigator.userAgent},{onConflict:'user_id,endpoint'});
