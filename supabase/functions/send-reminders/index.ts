@@ -31,7 +31,7 @@ async function sendEmail(task:Task,start:DateTime,scheduledFor:string){
   const {data,error}=await supabase.auth.admin.getUserById(task.user_id);
   if(error||!data.user?.email)throw error||new Error('User has no email address');
   const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${resendApiKey}`,'Content-Type':'application/json'},body:JSON.stringify({
-   from:emailFrom,to:[data.user.email],subject:`DayFlow: ${task.title} in ${task.reminder_minutes} minutes`,
+   from:emailFrom,to:[data.user.email],subject:`${task.title} in ${task.reminder_minutes} minutes`,
    html:`<h2>${escapeHtml(task.title)}</h2><p>Starts ${escapeHtml(start.toLocaleString(DateTime.DATETIME_FULL))}.</p><p>This is your ${task.reminder_minutes}-minute DayFlow reminder.</p>`
   })});
   if(!response.ok)throw new Error(`Resend ${response.status}: ${await response.text()}`);
