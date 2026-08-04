@@ -250,6 +250,7 @@ function renderSelectedDay(){
  dayTitle.replaceChildren(dateLabel,dayOffset);
  renderAllDay();
  renderTimeline();
+ updateCurrentHourLabels();
 }
 
 function drawCal(){
@@ -793,6 +794,7 @@ function renderMobileAgenda(){
   day.append(timeline);
   agenda.append(day);
  }
+ updateCurrentHourLabels();
  if(daysToRender<daysRemaining){
   const sentinel=document.createElement('div');
   sentinel.className='agenda-load-more';
@@ -1126,9 +1128,24 @@ function updateMinutesUntil(){
  });
 }
 
-setInterval(()=>{updateMinutesUntil();runAllDayRollover();},30000);
+function updateCurrentHourLabels(now=new Date()){
+ const todayKey=key(now);
+ const currentHour=now.getHours();
+ document.querySelectorAll('.day-panel .hour').forEach(row=>{
+  const hour=Number(row.querySelector('.slot')?.dataset.hour);
+  row.querySelector('.time')?.classList.toggle('current-hour',key(sel)===todayKey&&hour===currentHour);
+ });
+ document.querySelectorAll('.agenda-day').forEach(day=>{
+  day.querySelectorAll('.hour').forEach(row=>{
+   const hour=Number(row.querySelector('.slot')?.dataset.hour);
+   row.querySelector('.time')?.classList.toggle('current-hour',day.dataset.date===todayKey&&hour===currentHour);
+  });
+ });
+}
+
+setInterval(()=>{updateMinutesUntil();updateCurrentHourLabels();runAllDayRollover();},30000);
 document.addEventListener('visibilitychange',()=>{
- if(!document.hidden){updateMinutesUntil();runAllDayRollover();}
+ if(!document.hidden){updateMinutesUntil();updateCurrentHourLabels();runAllDayRollover();}
 });
 runAllDayRollover();
 
