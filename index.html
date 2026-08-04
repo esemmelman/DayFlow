@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m32</title>
-<link rel="stylesheet" href="style.css?v=0.8-m32">
+<title>DayFlow v0.8-m33</title>
+<link rel="stylesheet" href="style.css?v=0.8-m33">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m32</span></div>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m33</span></div>
 <div class="desktop-actions"><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
 <nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button">About</button></nav>
 <form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
@@ -93,7 +93,7 @@
 <fieldset id="editorReminderFields" class="reminder-fields">
 <legend>Reminder</legend>
 <label class="editor-check"><input id="editorReminderEnabled" type="checkbox">Remind me</label>
-<label class="editor-field">Minutes before<input id="editorReminderMinutes" type="number" min="1" max="10080" step="1" value="45"></label>
+<label class="editor-field">Minutes before<input id="editorReminderMinutes" type="number" min="1" max="10080" step="1"></label>
 <div class="reminder-channels"><label class="editor-check"><input id="editorReminderEmail" type="checkbox" checked>Email</label><label class="editor-check"><input id="editorReminderPush" type="checkbox">Push notification</label></div>
 <small id="editorReminderHelp">Reminders require a date, start time, and connected account.</small>
 </fieldset>
@@ -105,5 +105,5 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m32"></script>
+<script src="app.js?v=0.8-m33"></script>
 </body></html>

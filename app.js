@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m32
+// DayFlow v0.8-m33
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -105,9 +105,23 @@ async function loadRemoteTasks(){
  }
  else if(tasks.length)await syncTasks();
  else setSyncStatus('Synced','ok');
+ runAllDayRollover();
 }
 
 function key(d){return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+function runAllDayRollover(now=new Date()){
+ if(now.getHours()<23||(now.getHours()===23&&now.getMinutes()<45))return;
+ const sourceDate=key(now);
+ const rolloverKey=`dayflow:all-day-rollover:${currentUser?.id||'device'}`;
+ if(localStorage.getItem(rolloverKey)===sourceDate)return;
+ const tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+ let moved=false;
+ tasks.forEach(task=>{
+  if(task.date===sourceDate&&task.time==null){task.date=key(tomorrow);moved=true;}
+ });
+ localStorage.setItem(rolloverKey,sourceDate);
+ if(moved){save();renderEverything();}
+}
 function daysFromToday(date){
  const today=new Date();
  const dateUtc=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());
@@ -615,7 +629,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m32</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m33</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -1112,10 +1126,11 @@ function updateMinutesUntil(){
  });
 }
 
-setInterval(updateMinutesUntil,30000);
+setInterval(()=>{updateMinutesUntil();runAllDayRollover();},30000);
 document.addEventListener('visibilitychange',()=>{
- if(!document.hidden)updateMinutesUntil();
+ if(!document.hidden){updateMinutesUntil();runAllDayRollover();}
 });
+runAllDayRollover();
 
 function defaultEndTime(start){
  const value=toTimeValue(start);
@@ -1149,7 +1164,7 @@ function openAppointmentEditor(task=null,defaults={}){
  editorStartTime.value=toTimeValue(selectedTime);
  editorEndTime.value=task?.endTime??defaults.endTime??defaultEndTime(selectedTime);
  editorReminderEnabled.checked=Boolean(task?.reminderEnabled);
- editorReminderMinutes.value=String(task?.reminderMinutes||45);
+ editorReminderMinutes.value=task?.reminderEnabled?String(task.reminderMinutes??''):'';
  editorReminderEmail.checked=task?.reminderEmail!==false;
  editorReminderPush.checked=Boolean(task?.reminderPush);
  editorNotes.value=task?.notes??'';
@@ -1184,9 +1199,11 @@ appointmentForm.addEventListener('submit',event=>{
  const isAllDay=editorAllDay.checked;
  const start=editorStartTime.value;
  const reminderEnabled=Boolean(date&&!isAllDay&&start&&editorReminderEnabled.checked);
+ const reminderMinutes=Number(editorReminderMinutes.value);
 
  if(!title){editorError.textContent='Title is required.';return;}
  if(date&&!isAllDay&&!start){editorError.textContent='Choose a start time or mark this appointment all day.';return;}
+ if(reminderEnabled&&(!Number.isInteger(reminderMinutes)||reminderMinutes<1||reminderMinutes>10080)){editorError.textContent='Enter the number of minutes before the appointment.';return;}
 
  const appointment={
   title,
@@ -1196,7 +1213,7 @@ appointmentForm.addEventListener('submit',event=>{
   notes:editorNotes.value.trim(),
   color:editorColor.value,
   reminderEnabled,
-  reminderMinutes:Math.max(1,Math.min(10080,Number(editorReminderMinutes.value)||45)),
+  reminderMinutes:reminderEnabled?reminderMinutes:45,
   reminderEmail:reminderEnabled&&editorReminderEmail.checked,
   reminderPush:reminderEnabled&&editorReminderPush.checked,
   timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'
@@ -1311,7 +1328,7 @@ function urlBase64ToUint8Array(value){
 }
 async function getPushSubscription(){
  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
- const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m32');
+ const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m33');
  return registration.pushManager.getSubscription();
 }
 async function updatePushStatus(){
@@ -1331,7 +1348,7 @@ enablePushBtn.onclick=async()=>{
   if(Notification.permission==='denied')throw new Error('Notifications are blocked in this browser’s settings.');
   const permission=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;
   if(permission!=='granted')throw new Error('Notification permission was not granted.');
-  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m32');
+  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m33');
   let subscription=await registration.pushManager.getSubscription();
   if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(supabaseSettings.vapidPublicKey)});
   const json=subscription.toJSON(),{error}=await supabaseClient.from('push_subscriptions').upsert({user_id:currentUser.id,endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth,user_agent:navigator.userAgent},{onConflict:'user_id,endpoint'});
