@@ -112,6 +112,7 @@ body.touch-dragging{user-select:none}
 }
 @media (min-width:900px){.layout{grid-template-columns:minmax(220px,.8fr) minmax(0,1.6fr) minmax(300px,1fr);grid-template-areas:"inbox day calendar";height:calc(100vh - 56px)}
 aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
+.calendar-layout-panel{overflow:visible}
 .calendar-panel .monthbar{position:sticky;top:-14px;z-index:2;margin-top:-14px;padding:14px 0 10px;background:#fff}
 .calendar-panel{border-right:0}
 }
