@@ -1,6 +1,6 @@
 // TEST
 
-// DayFlow v0.8-m34
+// DayFlow v0.8-m35
 
 let legacyTasks=JSON.parse(localStorage.getItem('df6')||'[]');
 let tasks=[...legacyTasks];
@@ -630,7 +630,7 @@ androidCal.onclick=()=>{
 androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
- androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m34</div>';
+ androidPanel.innerHTML='<div class="android-about">DayFlow v0.8-m35</div>';
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
@@ -1077,9 +1077,37 @@ const editorReminderMinutes=document.getElementById('editorReminderMinutes');
 const editorReminderEmail=document.getElementById('editorReminderEmail');
 const editorReminderPush=document.getElementById('editorReminderPush');
 const editorNotes=document.getElementById('editorNotes');
+const editorNoteLinks=document.getElementById('editorNoteLinks');
+const editorNoteLinkList=document.getElementById('editorNoteLinkList');
 const editorColor=document.getElementById('editorColor');
 const editorDelete=document.getElementById('editorDelete');
 const editorError=document.getElementById('editorError');
+
+function noteUrls(text){
+ const pattern=/(?:https?:\/\/|www\.)[^\s<>"']+|\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:\/[^\s<>"']*)?/gi;
+ const links=[];
+ for(const match of text.matchAll(pattern)){
+  if(match.index>0&&text[match.index-1]==='@')continue;
+  const label=match[0].replace(/[.,!?;:\]\}]+$/,'').replace(/\)$/,value=>labelHasUnmatchedParen(match[0])?'':value);
+  if(!label||links.some(link=>link.label===label))continue;
+  links.push({label,href:/^https?:\/\//i.test(label)?label:`https://${label}`});
+ }
+ return links;
+}
+
+function labelHasUnmatchedParen(value){return (value.match(/\)/g)||[]).length>(value.match(/\(/g)||[]).length;}
+
+function renderNoteLinks(){
+ const links=noteUrls(editorNotes.value);
+ editorNoteLinkList.replaceChildren(...links.map(link=>{
+  const anchor=document.createElement('a');
+  anchor.href=link.href;anchor.textContent=link.label;anchor.target='_blank';anchor.rel='noopener noreferrer';
+  return anchor;
+ }));
+ editorNoteLinks.hidden=!links.length;
+}
+
+editorNotes.addEventListener('input',renderNoteLinks);
 
 function toDateInput(dateValue){
  if(!dateValue)return '';
@@ -1185,6 +1213,7 @@ function openAppointmentEditor(task=null,defaults={}){
  editorReminderEmail.checked=task?.reminderEmail!==false;
  editorReminderPush.checked=Boolean(task?.reminderPush);
  editorNotes.value=task?.notes??'';
+ renderNoteLinks();
  editorColor.value=task?.color??'#2f80ed';
  editorDelete.hidden=!task;
  editorError.textContent='';
@@ -1345,7 +1374,7 @@ function urlBase64ToUint8Array(value){
 }
 async function getPushSubscription(){
  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
- const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m34');
+ const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m35');
  return registration.pushManager.getSubscription();
 }
 async function updatePushStatus(){
@@ -1365,7 +1394,7 @@ enablePushBtn.onclick=async()=>{
   if(Notification.permission==='denied')throw new Error('Notifications are blocked in this browser’s settings.');
   const permission=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;
   if(permission!=='granted')throw new Error('Notification permission was not granted.');
-  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m34');
+  const registration=await navigator.serviceWorker.register('service-worker.js?v=0.8-m35');
   let subscription=await registration.pushManager.getSubscription();
   if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(supabaseSettings.vapidPublicKey)});
   const json=subscription.toJSON(),{error}=await supabaseClient.from('push_subscriptions').upsert({user_id:currentUser.id,endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth,user_agent:navigator.userAgent},{onConflict:'user_id,endpoint'});

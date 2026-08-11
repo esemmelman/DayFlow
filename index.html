@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m34</title>
-<link rel="stylesheet" href="style.css?v=0.8-m34">
+<title>DayFlow v0.8-m35</title>
+<link rel="stylesheet" href="style.css?v=0.8-m35">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m34</span></div>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m35</span></div>
 <div class="desktop-actions"><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
 <nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button">About</button></nav>
 <form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
@@ -98,6 +98,7 @@
 <small id="editorReminderHelp">Reminders require a date, start time, and connected account.</small>
 </fieldset>
 <label class="editor-field">Notes<textarea id="editorNotes" rows="4"></textarea></label>
+<div id="editorNoteLinks" class="note-links" hidden><strong>Links</strong><div id="editorNoteLinkList"></div></div>
 <label class="editor-field">Color<input id="editorColor" type="color" value="#2f80ed"></label>
 <p id="editorError" class="editor-error" aria-live="polite"></p>
 <div class="editor-actions"><button id="editorDelete" type="button" class="danger" hidden>Delete</button><span></span><button type="submit">Save</button><button type="button" data-editor-cancel>Cancel</button></div>
@@ -105,5 +106,5 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m34"></script>
+<script src="app.js?v=0.8-m35"></script>
 </body></html>
