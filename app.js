@@ -650,7 +650,7 @@ function moveToToday(){
 }
 
 todayBtn.onclick=moveToToday;
-for(let h=7;h<=22;h++){
+for(let h=6;h<=22;h++){
  let r=document.createElement('div');
  r.className='hour';
  let time=document.createElement('div');
@@ -756,7 +756,7 @@ function renderMobileAgenda(){
   day.append(allDayZone);
 
   const timeline=document.createElement('div');
-  for(let hour=7;hour<=22;hour++){
+  for(let hour=6;hour<=22;hour++){
    const row=document.createElement('div');
    row.className='hour';
    row.dataset.date=dateKey;
@@ -1026,7 +1026,7 @@ document.addEventListener('contextmenu',event=>{
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
  tasks.filter(x=>x.date===key(sel)&&x.time!=null).sort(compareTaskStartTimes).forEach(task=>{
-  for(let hour=7;hour<=22;hour++){
+  for(let hour=6;hour<=22;hour++){
    if(!taskOccupiesHour(task,hour))continue;
    const slot=document.querySelector(`.day-panel .slot[data-hour="${hour}"]`);
    if(slot){
