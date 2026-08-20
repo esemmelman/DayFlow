@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m40
+// DayFlow v0.8-m41
 
-const DAYFLOW_VERSION='v0.8-m40';
+const DAYFLOW_VERSION='v0.8-m41';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -407,6 +407,7 @@ function closeAndroidPanel(){
 }
 
 function showAndroidButtons(){
+ document.body.classList.remove('android-searching');
  androidAddForm.hidden=true;
  androidSearchForm.hidden=true;
  androidNav.hidden=false;
@@ -503,12 +504,13 @@ function renderAndroidSearchResults(){
 
 androidFind.onclick=()=>{
  closeAndroidPanel();
+ document.body.classList.add('android-searching');
  androidNav.hidden=true;
  androidAddForm.hidden=true;
  androidSearchForm.hidden=false;
  androidSearch.value='';
  renderAndroidSearchResults();
- androidSearch.focus();
+ androidSearch.focus({preventScroll:true});
 };
 androidSearch.addEventListener('input',renderAndroidSearchResults);
 androidSearchForm.addEventListener('submit',event=>{
