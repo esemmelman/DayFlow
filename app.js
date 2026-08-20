@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m38
+// DayFlow v0.8-m39
 
-const DAYFLOW_VERSION='v0.8-m38';
+const DAYFLOW_VERSION='v0.8-m39';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -638,6 +638,7 @@ androidAbout.onclick=()=>{
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
  androidPanel.replaceChildren(about);
+ requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
 next.onclick=()=>{m++;if(m>11){m=0;y++;}drawCal();}
