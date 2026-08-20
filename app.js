@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m39
+// DayFlow v0.8-m40
 
-const DAYFLOW_VERSION='v0.8-m39';
+const DAYFLOW_VERSION='v0.8-m40';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -402,6 +402,7 @@ calendarLayoutNext.onclick=()=>{calendarLayoutMonth.setMonth(calendarLayoutMonth
 
 function closeAndroidPanel(){
  androidPanel.hidden=true;
+ androidPanel.classList.remove('android-search-results-panel');
  androidPanel.replaceChildren();
 }
 
@@ -485,6 +486,7 @@ function renderSearchResults(searchInput,container,onSelect){
 
 function renderAndroidSearchResults(){
  androidPanel.hidden=false;
+ androidPanel.classList.add('android-search-results-panel');
  renderSearchResults(androidSearch,androidPanel,task=>{
   if(task.date){
    const [year,month,date]=task.date.split('-').map(Number);
