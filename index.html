@@ -1,11 +1,11 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m42</title>
-<link rel="stylesheet" href="style.css?v=0.8-m42">
+<title>DayFlow v0.8-m43</title>
+<link rel="stylesheet" href="style.css?v=0.8-m43">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m42</span></div>
-<div class="desktop-actions"><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
-<nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button">About</button></nav>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m43</span></div>
+<div class="desktop-actions"><button id="scheduleBtn" type="button" aria-pressed="false">Schedule</button><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
+<nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidFind" type="button">Find</button><button id="androidAccount" type="button">Account</button><button id="androidAbout" type="button" aria-haspopup="true">More</button></nav>
 <form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
 <form id="androidSearchForm" class="android-search-form" hidden><input id="androidSearch" type="search" enterkeyhint="search" autocomplete="off" aria-label="Search tasks" placeholder="Search tasks"><button id="androidSearchCancel" type="button">Cancel</button></form>
 </header>
@@ -36,6 +36,10 @@
 <div class="calendar-layout-sticky"><div class="calendar-layout-bar"><button id="calendarLayoutPrev" type="button" aria-label="Previous month">&lt;</button><h2 id="calendarLayoutTitle"></h2><button id="calendarLayoutNext" type="button" aria-label="Next month">&gt;</button></div>
 <div id="calendarLayoutWeekdaysScroll" class="calendar-layout-weekdays-scroll"><div id="calendarLayoutWeekdays" class="calendar-layout-weekdays"></div></div></div>
 <div id="calendarLayoutScroll" class="calendar-layout-scroll"><div id="calendarLayout" class="calendar-layout"></div></div>
+</section>
+<section id="schedulePanel" class="schedule-panel" hidden>
+<div class="schedule-bar"><h2>Schedule</h2><button id="scheduleCloseBtn" type="button" aria-label="Close schedule">×</button></div>
+<div id="scheduleList" class="schedule-list"></div>
 </section>
 <div id="authDialog" class="modal" hidden>
 <div class="modal-backdrop" data-auth-cancel></div>
@@ -106,5 +110,5 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m42"></script>
+<script src="app.js?v=0.8-m43"></script>
 </body></html>

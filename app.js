@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m42
+// DayFlow v0.8-m43
 
-const DAYFLOW_VERSION='v0.8-m42';
+const DAYFLOW_VERSION='v0.8-m43';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -83,7 +83,7 @@ async function syncTasks(){
  }catch(error){console.error('DayFlow sync failed',error);setSyncStatus('Sync failed','error');}
  finally{syncInProgress=false;if(syncAgain){syncAgain=false;syncTasks();}}
 }
-function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();if(!calendarLayoutPanel.hidden)renderCalendarLayout();}
+function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();if(!calendarLayoutPanel.hidden)renderCalendarLayout();if(!schedulePanel.hidden)renderSchedule();}
 async function loadRemoteTasks(){
  setSyncStatus('Loading…','pending');
  const {data,error}=await supabaseClient.from('tasks').select('*').order('created_at');
@@ -316,6 +316,10 @@ const desktopFindBtn=document.getElementById('desktopFindBtn');
 const desktopSearchDialog=document.getElementById('desktopSearchDialog');
 const desktopSearch=document.getElementById('desktopSearch');
 const desktopSearchResults=document.getElementById('desktopSearchResults');
+const scheduleBtn=document.getElementById('scheduleBtn');
+const schedulePanel=document.getElementById('schedulePanel');
+const scheduleList=document.getElementById('scheduleList');
+const scheduleCloseBtn=document.getElementById('scheduleCloseBtn');
 let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
 const calendarLayoutBtn=document.getElementById('calendarLayoutBtn');
 const calendarLayoutPanel=document.getElementById('calendarLayoutPanel');
@@ -328,6 +332,56 @@ const calendarLayoutPrev=document.getElementById('calendarLayoutPrev');
 const calendarLayoutNext=document.getElementById('calendarLayoutNext');
 const mainLayout=document.querySelector('.layout');
 let calendarLayoutMonth=new Date(t.getFullYear(),t.getMonth(),1);
+
+function openScheduleDate(date){
+ const [year,month,day]=date.split('-').map(Number);
+ sel=new Date(year,month-1,day);
+ y=year;m=month-1;
+ mobileAgendaStart=new Date(sel);
+ mobileAgendaDayCount=10;
+ setScheduleOpen(false);
+ drawCal();renderSelectedDay();renderMobileAgenda();
+ requestAnimationFrame(()=>usesAndroidAgenda?document.getElementById('mobileAgenda').scrollIntoView({block:'start'}):document.querySelector('.day-panel').scrollIntoView({block:'start'}));
+}
+
+function renderSchedule(){
+ scheduleList.replaceChildren();
+ const todayKey=key(new Date());
+ const upcoming=tasks.filter(task=>task.date&&compareDateKeys(task.date,todayKey)>=0).sort(compareTaskSchedule);
+ if(!upcoming.length){const empty=document.createElement('p');empty.className='schedule-empty';empty.textContent='No upcoming calendar items.';scheduleList.append(empty);return;}
+ const groups=new Map();
+ upcoming.forEach(task=>{if(!groups.has(task.date))groups.set(task.date,[]);groups.get(task.date).push(task);});
+ groups.forEach((dayTasks,dateKey)=>{
+  const [year,month,dayNumber]=dateKey.split('-').map(Number),date=new Date(year,month-1,dayNumber);
+  const section=document.createElement('section');section.className='schedule-day';
+  const heading=document.createElement('button');heading.type='button';heading.className='schedule-date';
+  const label=document.createElement('span');label.textContent=date.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const offset=document.createElement('span');offset.className='schedule-date-offset';offset.textContent=dateKey===todayKey?'Today':String(daysFromToday(date));
+  heading.append(label,offset);heading.onclick=()=>openScheduleDate(dateKey);
+  const items=document.createElement('div');items.className='schedule-items';
+  dayTasks.forEach(task=>{
+   const item=document.createElement('button');item.type='button';item.className='schedule-item';item.style.setProperty('--appointment-color',task.color||'#2f80ed');
+   const time=document.createElement('span');time.className='schedule-item-time';time.textContent=task.time==null?'All day':formatTimeRange(task.time,task.endTime);
+   const title=document.createElement('span');title.className='schedule-item-title';title.textContent=task.title;
+   item.append(time,title);item.onclick=()=>openAppointmentEditor(task);items.append(item);
+  });
+  section.append(heading,items);scheduleList.append(section);
+ });
+}
+
+function compareDateKeys(a,b){
+ const [ay,am,ad]=a.split('-').map(Number),[by,bm,bd]=b.split('-').map(Number);
+ return Date.UTC(ay,am-1,ad)-Date.UTC(by,bm-1,bd);
+}
+
+function setScheduleOpen(open){
+ schedulePanel.hidden=!open;mainLayout.hidden=open;calendarLayoutPanel.hidden=true;
+ scheduleBtn.setAttribute('aria-pressed',String(open));calendarLayoutBtn.setAttribute('aria-pressed','false');androidCalendarLayout.setAttribute('aria-pressed','false');
+ if(open){closeAndroidPanel();showAndroidButtons();renderSchedule();schedulePanel.scrollIntoView({block:'start'});}
+}
+
+scheduleBtn.onclick=()=>setScheduleOpen(schedulePanel.hidden);
+scheduleCloseBtn.onclick=()=>setScheduleOpen(false);
 
 function renderCalendarLayout(){
  const year=calendarLayoutMonth.getFullYear(),month=calendarLayoutMonth.getMonth();
@@ -366,6 +420,7 @@ function renderCalendarLayout(){
 }
 
 function setCalendarLayoutOpen(open){
+ if(open)setScheduleOpen(false);
  calendarLayoutPanel.hidden=!open;mainLayout.hidden=open;calendarLayoutBtn.setAttribute('aria-pressed',String(open));androidCalendarLayout.setAttribute('aria-pressed',String(open));
  if(open){
   closeAndroidPanel();showAndroidButtons();
@@ -618,6 +673,12 @@ function enableHorizontalMonthSwipe(element){
 }
 
 androidCal.onclick=()=>{
+ if(!schedulePanel.hidden){
+  setScheduleOpen(false);
+  renderMobileAgenda();
+  requestAnimationFrame(()=>document.getElementById('mobileAgenda').scrollIntoView({block:'start'}));
+  return;
+ }
  if(!calendarLayoutPanel.hidden){
   setCalendarLayoutOpen(false);
   closeAndroidPanel();
@@ -636,12 +697,14 @@ androidCal.onclick=()=>{
 };
 
 androidAbout.onclick=()=>{
- if(!androidPanel.hidden&&androidPanel.querySelector('.android-about')){closeAndroidPanel();return;}
+ if(!androidPanel.hidden&&androidPanel.querySelector('.android-more')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
+ const more=document.createElement('div');more.className='android-more';
+ const schedule=document.createElement('button');schedule.type='button';schedule.textContent='Schedule';schedule.onclick=()=>setScheduleOpen(true);
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- androidPanel.replaceChildren(about);
+ more.append(schedule,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
@@ -1248,6 +1311,7 @@ function refreshAppointments(){
  drawCal();
  renderSelectedDay();
  renderMobileAgenda();
+ if(!schedulePanel.hidden)renderSchedule();
 }
 
 appointmentForm.addEventListener('submit',event=>{
