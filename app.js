@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m43
+// DayFlow v0.8-m44
 
-const DAYFLOW_VERSION='v0.8-m43';
+const DAYFLOW_VERSION='v0.8-m44';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -303,9 +303,9 @@ const androidNav=document.getElementById('androidNav');
 const androidAdd=document.getElementById('androidAdd');
 const androidCal=document.getElementById('androidCal');
 const androidCalendarLayout=document.getElementById('androidCalendarLayout');
+const androidSchedule=document.getElementById('androidSchedule');
 const androidFind=document.getElementById('androidFind');
 const androidAbout=document.getElementById('androidAbout');
-const androidAccount=document.getElementById('androidAccount');
 const androidAddForm=document.getElementById('androidAddForm');
 const androidNewTask=document.getElementById('androidNewTask');
 const androidSearchForm=document.getElementById('androidSearchForm');
@@ -376,11 +376,12 @@ function compareDateKeys(a,b){
 
 function setScheduleOpen(open){
  schedulePanel.hidden=!open;mainLayout.hidden=open;calendarLayoutPanel.hidden=true;
- scheduleBtn.setAttribute('aria-pressed',String(open));calendarLayoutBtn.setAttribute('aria-pressed','false');androidCalendarLayout.setAttribute('aria-pressed','false');
+ scheduleBtn.setAttribute('aria-pressed',String(open));androidSchedule.setAttribute('aria-pressed',String(open));calendarLayoutBtn.setAttribute('aria-pressed','false');androidCalendarLayout.setAttribute('aria-pressed','false');
  if(open){closeAndroidPanel();showAndroidButtons();renderSchedule();schedulePanel.scrollIntoView({block:'start'});}
 }
 
 scheduleBtn.onclick=()=>setScheduleOpen(schedulePanel.hidden);
+androidSchedule.onclick=()=>setScheduleOpen(schedulePanel.hidden);
 scheduleCloseBtn.onclick=()=>setScheduleOpen(false);
 
 function renderCalendarLayout(){
@@ -700,11 +701,11 @@ androidAbout.onclick=()=>{
  if(!androidPanel.hidden&&androidPanel.querySelector('.android-more')){closeAndroidPanel();return;}
  androidPanel.hidden=false;
  const more=document.createElement('div');more.className='android-more';
- const schedule=document.createElement('button');schedule.type='button';schedule.textContent='Schedule';schedule.onclick=()=>setScheduleOpen(true);
+ const account=document.createElement('button');account.type='button';account.textContent='Account';account.onclick=()=>{closeAndroidPanel();openAuthDialog();};
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- more.append(schedule,about);androidPanel.replaceChildren(more);
+ more.append(account,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
@@ -1495,7 +1496,6 @@ saveNewPasswordBtn.onclick=async()=>{
 function openAuthDialog(){authError.textContent=supabaseClient?'':'Add your Supabase URL and publishable key to supabase-config.js first.';updateAccountUi();authDialog.hidden=false;if(!currentUser)authEmail.focus();}
 function closeAuthDialog(){authDialog.hidden=true;authError.textContent='';closeChangePasswordFields();}
 accountBtn.onclick=openAuthDialog;
-androidAccount.onclick=openAuthDialog;
 authDialog.querySelectorAll('[data-auth-cancel]').forEach(button=>button.onclick=closeAuthDialog);
 authForm.addEventListener('submit',async event=>{
  event.preventDefault();if(!supabaseClient)return openAuthDialog();authError.textContent='Signing in…';
