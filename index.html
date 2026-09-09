@@ -1,19 +1,18 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m45</title>
-<link rel="stylesheet" href="style.css?v=0.8-m45">
+<title>DayFlow v0.8-m46</title>
+<link rel="stylesheet" href="style.css?v=0.8-m46">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m45</span></div>
-<div class="desktop-actions"><button id="scheduleBtn" type="button" aria-pressed="false">Schedule</button><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><button id="natBtn" type="button" aria-label="Nat: add a task by voice">Nat</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
-<nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button">Add</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidSchedule" type="button" aria-pressed="false">Sch</button><button id="androidFind" type="button">Find</button><button id="androidAbout" type="button" aria-haspopup="true">More</button></nav>
-<form id="androidAddForm" class="android-add-form" hidden><input id="androidNewTask" enterkeyhint="go" autocomplete="off" aria-label="New task" placeholder="New task"></form>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m46</span></div>
+<div class="desktop-actions"><button id="scheduleBtn" type="button" aria-pressed="false">Schedule</button><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
+<nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button" aria-label="Spk: add a task by voice">Spk</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidSchedule" type="button" aria-pressed="false">Sch</button><button id="androidFind" type="button">Find</button><button id="androidAbout" type="button" aria-haspopup="true">More</button></nav>
 <form id="androidSearchForm" class="android-search-form" hidden><input id="androidSearch" type="search" enterkeyhint="search" autocomplete="off" aria-label="Search tasks" placeholder="Search tasks"><button id="androidSearchCancel" type="button">Cancel</button></form>
 </header>
 <div id="androidPanel" class="android-panel" hidden></div>
 
 <div class="layout">
 <aside class="inbox-panel">
-<div class="new"><input id="newTask" placeholder="New task"><button id="addBtn">Add</button></div>
+<div class="new"><input id="newTask" placeholder="New task"><button id="addBtn" type="button" aria-label="Spk: add a task by voice">Spk</button></div>
 <ul id="inbox"></ul>
 </aside>
 
@@ -38,23 +37,21 @@
 <div id="calendarLayoutScroll" class="calendar-layout-scroll"><div id="calendarLayout" class="calendar-layout"></div></div>
 </section>
 <section id="schedulePanel" class="schedule-panel" hidden>
-<div class="schedule-bar"><h2>Schedule</h2><button id="scheduleCloseBtn" type="button" aria-label="Close schedule">×</button></div>
+<div class="schedule-bar"><h2>Schedule</h2><button id="scheduleCloseBtn" type="button" aria-label="Close schedule">Ã—</button></div>
 <div id="scheduleList" class="schedule-list"></div>
 </section>
 <div id="natDialog" class="modal" hidden>
 <div class="modal-backdrop" data-nat-close></div>
-<form id="natForm" class="appointment-editor" role="dialog" aria-modal="true" aria-labelledby="natTitle" aria-describedby="natStatus">
-<div class="editor-header"><h2 id="natTitle">Nat</h2><button id="natClose" type="button" class="editor-close" data-nat-close aria-label="Close">�</button></div>
-<p>Say one task, like �Dentist tomorrow at 3 PM� or �Buy milk�. When you finish speaking, Nat adds it automatically. Dates without a time become all-day items.</p>
-<p id="natStatus" role="status" aria-live="polite"></p>
-<label class="editor-field">Task<textarea id="natText" rows="3" placeholder="Lunch with Sam Friday at noon"></textarea></label>
+<form id="natForm" class="appointment-editor" role="dialog" aria-modal="true" aria-label="Spk" aria-describedby="natStatus">
+<p class="visually-hidden" id="natStatus" role="status" aria-live="polite"></p>
+<label class="editor-field">Task<textarea id="natText" rows="3"></textarea></label>
 <div class="nat-actions"><button id="natListen" type="button">Speak again</button><button type="submit">Add</button><button type="button" data-nat-close>Done</button></div>
 </form>
 </div>
 <div id="authDialog" class="modal" hidden>
 <div class="modal-backdrop" data-auth-cancel></div>
 <form id="authForm" class="appointment-editor auth-editor" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-<div class="editor-header"><h2 id="authTitle">Connect DayFlow</h2><button type="button" class="editor-close" data-auth-cancel aria-label="Close">×</button></div>
+<div class="editor-header"><h2 id="authTitle">Connect DayFlow</h2><button type="button" class="editor-close" data-auth-cancel aria-label="Close">Ã—</button></div>
 <p>Sign in to keep the same DayFlow tasks on Android and the browser.</p>
 <label class="editor-field">Email<input id="authEmail" type="email" autocomplete="email" required></label>
 <label class="editor-field">Password<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required></label>
@@ -83,7 +80,7 @@
 <div id="desktopSearchDialog" class="modal" hidden>
 <div class="modal-backdrop" data-search-cancel></div>
 <div class="appointment-editor search-editor" role="dialog" aria-modal="true" aria-labelledby="desktopSearchTitle">
-<div class="editor-header"><h2 id="desktopSearchTitle">Find</h2><button type="button" class="editor-close" data-search-cancel aria-label="Close">×</button></div>
+<div class="editor-header"><h2 id="desktopSearchTitle">Find</h2><button type="button" class="editor-close" data-search-cancel aria-label="Close">Ã—</button></div>
 <label class="editor-field">Search tasks and notes<input id="desktopSearch" type="search" autocomplete="off" placeholder="Search tasks"></label>
 <div id="desktopSearchResults" class="search-results" aria-live="polite"></div>
 </div>
@@ -99,7 +96,7 @@
 <div id="appointmentEditor" class="modal" hidden>
 <div class="modal-backdrop" data-editor-cancel></div>
 <form id="appointmentForm" class="appointment-editor" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
-<div class="editor-header"><h2 id="editorTitle">Appointment</h2><button type="button" class="editor-close" data-editor-cancel aria-label="Close">×</button></div>
+<div class="editor-header"><h2 id="editorTitle">Appointment</h2><button type="button" class="editor-close" data-editor-cancel aria-label="Close">Ã—</button></div>
 <label class="editor-field">Title<input id="editorTaskTitle" required></label>
 <label class="editor-field">Date<input id="editorDate" type="date"></label>
 <label class="editor-check"><input id="editorAllDay" type="checkbox">All Day</label>
@@ -120,7 +117,7 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m45"></script>
+<script src="app.js?v=0.8-m46"></script>
 <script src="vendor/chrono-en.min.js?v=2.10.0"></script>
-<script src="nat.js?v=0.8-m45"></script>
+<script src="nat.js?v=0.8-m46"></script>
 </body></html>

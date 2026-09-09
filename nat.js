@@ -7,7 +7,7 @@ function parseNaturalTask(transcript,now=new Date()){
  const result=results[0];
  const title=(result?`${text.slice(0,result.index)} ${text.slice(result.index+result.text.length)}`:text)
   .replace(/\b(?:on|at|for)\s*$/i,'').replace(/\s+/g,' ').replace(/^[\s,.;]+|[\s,.;]+$/g,'');
- if(!title)throw new Error('Include a task name, such as “Dentist tomorrow at 3 PM”.');
+ if(!title)throw new Error('Include a task name.');
  const dateKey=date=>`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
  const timeValue=components=>`${String(components.get('hour')).padStart(2,'0')}:${String(components.get('minute')||0).padStart(2,'0')}`;
  if(result?.end&&dateKey(result.start.date())!==dateKey(result.end.date()))throw new Error('Please add each day separately for an appointment spanning multiple days.');
@@ -23,11 +23,17 @@ const natStatus=document.getElementById('natStatus');
 const natListen=document.getElementById('natListen');
 let natRecognition=null,natReturnFocus=null;
 
+function showNatError(message){
+ natStatus.textContent=message;
+ natText.setCustomValidity?.(message);
+ natText.reportValidity?.();
+}
 function stopNatListening(){
  const recognition=natRecognition;
  natRecognition=null;
  if(recognition)recognition.abort();
  natListen.disabled=false;
+ natListen.textContent='Speak again';
 }
 function closeNat(){
  stopNatListening();
@@ -44,10 +50,11 @@ function addNaturalTask(){
   renderEverything();
   natStatus.textContent=`Added “${task.title}”${task.date?` on ${task.date}${task.time?` at ${formatTime(task.time)}`:' (all day)'}`:' to the inbox'}.`;
   natText.value='';
- }catch(error){natStatus.textContent=error.message;}
+ }catch(error){showNatError(error.message);}
 }
 function startNatListening(){
  stopNatListening();
+ natText.setCustomValidity?.('');
  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!Recognition){natStatus.textContent='Voice input is unavailable in this browser. Type your task below.';natText.focus();return;}
  try{
@@ -57,6 +64,7 @@ function startNatListening(){
   recognition.continuous=false;
   recognition.interimResults=true;
   natListen.disabled=true;
+  natListen.textContent='Listening...';
   natStatus.textContent='Listening… Say one task, including its date and time if needed.';
   recognition.onresult=event=>{
    if(natRecognition!==recognition)return;
@@ -66,26 +74,25 @@ function startNatListening(){
   recognition.onerror=event=>{
    if(natRecognition!==recognition)return;
    const messages={'not-allowed':'Microphone access was denied. Allow it in browser settings or type below.','service-not-allowed':'Voice input is unavailable. Type your task below.','audio-capture':'No microphone is available. Connect one or type below.','no-speech':'No speech was detected. Try again or type below.',network:'Voice recognition could not connect. Try again or type below.'};
-   natStatus.textContent=messages[event.error]||'Voice input stopped. Try again or type below.';
+   showNatError(messages[event.error]||'Voice input stopped. Try again or type below.');
    stopNatListening();
   };
   recognition.onend=()=>{
    if(natRecognition!==recognition)return;
-   natRecognition=null;natListen.disabled=false;
+   natRecognition=null;natListen.disabled=false;natListen.textContent='Speak again';
    natStatus.textContent='Listening ended. Try again, or edit the text and choose Add.';
   };
   recognition.start();
- }catch(error){stopNatListening();natStatus.textContent='Could not start the microphone. Try again or type below.';}
+ }catch(error){stopNatListening();showNatError('Could not start the microphone. Try again or type below.');}
 }
 function openNat(){
  natReturnFocus=document.activeElement;
  natText.value='';natDialog.hidden=false;
- document.getElementById('natClose').focus();
+ natListen.focus();
  startNatListening();
 }
-document.getElementById('natBtn').onclick=openNat;
 natListen.onclick=startNatListening;
-natText.addEventListener('input',stopNatListening);
+natText.addEventListener('input',()=>{stopNatListening();natText.setCustomValidity?.('');});
 document.getElementById('natForm').onsubmit=event=>{event.preventDefault();addNaturalTask();};
 natDialog.querySelectorAll('[data-nat-close]').forEach(button=>button.onclick=closeNat);
 document.addEventListener('keydown',event=>{

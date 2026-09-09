@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m45
+// DayFlow v0.8-m46
 
-const DAYFLOW_VERSION='v0.8-m45';
+const DAYFLOW_VERSION='v0.8-m46';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -295,7 +295,7 @@ function addInboxTask(){
  save();
  renderInbox();
 }
-addBtn.onclick=addInboxTask;
+addBtn.onclick=()=>openNat();
 newTask.addEventListener('keydown',event=>{
  if(event.key==='Enter'){event.preventDefault();addInboxTask();}
 });
@@ -306,8 +306,6 @@ const androidCalendarLayout=document.getElementById('androidCalendarLayout');
 const androidSchedule=document.getElementById('androidSchedule');
 const androidFind=document.getElementById('androidFind');
 const androidAbout=document.getElementById('androidAbout');
-const androidAddForm=document.getElementById('androidAddForm');
-const androidNewTask=document.getElementById('androidNewTask');
 const androidSearchForm=document.getElementById('androidSearchForm');
 const androidSearch=document.getElementById('androidSearch');
 const androidSearchCancel=document.getElementById('androidSearchCancel');
@@ -464,29 +462,11 @@ function closeAndroidPanel(){
 
 function showAndroidButtons(){
  document.body.classList.remove('android-searching');
- androidAddForm.hidden=true;
  androidSearchForm.hidden=true;
  androidNav.hidden=false;
 }
 
-androidAdd.onclick=()=>{
- closeAndroidPanel();
- androidNav.hidden=true;
- androidSearchForm.hidden=true;
- androidAddForm.hidden=false;
- androidNewTask.focus();
-};
-
-androidAddForm.addEventListener('submit',event=>{
- event.preventDefault();
- const title=androidNewTask.value.trim();
- if(!title)return;
- newTask.value=title;
- addInboxTask();
- androidNewTask.value='';
- androidNewTask.blur();
- showAndroidButtons();
-});
+androidAdd.onclick=()=>{closeAndroidPanel();openNat();};
 
 function searchResultDetail(task){
  if(!task.date)return 'Inbox';
@@ -562,7 +542,6 @@ androidFind.onclick=()=>{
  closeAndroidPanel();
  document.body.classList.add('android-searching');
  androidNav.hidden=true;
- androidAddForm.hidden=true;
  androidSearchForm.hidden=false;
  androidSearch.value='';
  renderAndroidSearchResults();
@@ -705,8 +684,7 @@ androidAbout.onclick=()=>{
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- const nat=document.createElement('button');nat.type='button';nat.textContent='Nat';nat.setAttribute('aria-label','Nat: add a task by voice');nat.onclick=()=>{closeAndroidPanel();openNat();};
- more.append(account,nat,about);androidPanel.replaceChildren(more);
+ more.append(account,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
