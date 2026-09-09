@@ -116,6 +116,7 @@ function startNatListening(){
    if(natRecognition!==recognition)return;
    natRecognition=null;natListen.disabled=false;natListen.textContent='Speak again';
    natStatus.textContent='Listening ended. Review the task and choose Done to save.';
+   updateNatPreview();
   };
   recognition.start();
  }catch(error){stopNatListening();showNatError('Could not start the microphone. Try again or type below.');}
@@ -129,6 +130,8 @@ function openNat(){
 }
 natListen.onclick=startNatListening;
 natText.addEventListener('input',()=>{stopNatListening();natText.setCustomValidity?.('');updateNatPreview();});
+natText.addEventListener('change',updateNatPreview);
+natText.addEventListener('blur',updateNatPreview);
 document.getElementById('natForm').onsubmit=event=>{event.preventDefault();addNaturalTask();};
 natDialog.querySelectorAll('[data-nat-close]').forEach(button=>button.onclick=closeNat);
 document.addEventListener('keydown',event=>{

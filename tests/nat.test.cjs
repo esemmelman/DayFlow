@@ -55,6 +55,17 @@ test('preview shows only the interpreted draft and clears stale dates',()=>{
  assert.equal(element('natPreview').hidden,true);
  assert.equal(context.saves,0);
 });
+test('speech ending refreshes the preview for the reported noon phrase',()=>{
+ const {context,element,Recognition}=setup();
+ context.openNat();
+ element('natText').value='make chicken at noon';
+ Recognition.latest.onend();
+ assert.equal(element('natPreview').hidden,false);
+ assert.equal(element('natPreviewTitle').textContent,'make chicken');
+ assert.equal(element('natPreviewSchedule').hidden,false);
+ assert.match(element('natPreviewSchedule').textContent,/12:00.*12:30/);
+ assert.equal(context.saves,0);
+});
 test('speech stays editable until Done; repeated submission and late results do not duplicate',()=>{
  const {context,element,Recognition}=setup();
  context.openNat();
