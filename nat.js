@@ -17,7 +17,7 @@ function parseNaturalTask(transcript,now=new Date()){
   const endMinutes=(result.start.get('hour')*60+(result.start.get('minute')||0)+30)%1440;
   endTime=`${String(Math.floor(endMinutes/60)).padStart(2,'0')}:${String(endMinutes%60).padStart(2,'0')}`;
  }
- return {title,date:result?dateKey(result.start.date()):null,
+ return {title,date:dateKey(result?result.start.date():now),
   time,endTime,
   notes:'',color:'#2f80ed'};
 }

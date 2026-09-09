@@ -20,7 +20,9 @@ function setup(){
 test('extracts title, relative dates, spoken times and ranges',()=>{
  const {parse}=setup();
  for(const [text,title,date,time,endTime] of [
-  ['Buy milk','Buy milk',null,null,null],
+  ['Buy milk','Buy milk','2026-9-9',null,null],
+  ["Check Aubree's Bed","Check Aubree's Bed",'2026-9-9',null,null],
+  ['Check Aubree’s Bed','Check Aubree’s Bed','2026-9-9',null,null],
   ['Add dentist tomorrow at 3 PM','dentist','2026-9-10','15:00','15:30'],
   ['Remind me to call Sam Friday at noon','call Sam','2026-9-11','12:00','12:30'],
   ['Lunch tomorrow from 1 PM to 2 PM','Lunch','2026-9-10','13:00','14:00'],
@@ -37,7 +39,7 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
  assert.throws(()=>parse('tomorrow'),/task name/);
  assert.throws(()=>parse('Trip September 15 to September 18'),/each day separately/);
 });
-test('preview shows only the interpreted draft and clears stale dates',()=>{
+test('preview replaces an explicit schedule with today all day for an undated task',()=>{
  const {context,element}=setup();
  context.openNat();
  assert.equal(element('natPreview').hidden,true);
@@ -49,11 +51,26 @@ test('preview shows only the interpreted draft and clears stale dates',()=>{
  element('natText').value='Buy milk';
  context.updateNatPreview();
  assert.equal(element('natPreviewTitle').textContent,'Buy milk');
- assert.equal(element('natPreviewSchedule').hidden,true);
+ assert.equal(element('natPreviewSchedule').hidden,false);
+ const today=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+ assert.equal(element('natPreviewSchedule').textContent,`${today} · All day`);
  element('natText').value='';
  context.updateNatPreview();
  assert.equal(element('natPreview').hidden,true);
  assert.equal(context.saves,0);
+});
+test('Done saves the reported apostrophe title to today all day',()=>{
+ const {context,element}=setup();
+ context.openNat();
+ element('natText').value="Check Aubree's Bed";
+ element('natForm').onsubmit({preventDefault(){}});
+ const now=new Date();
+ assert.equal(context.tasks.length,1);
+ assert.equal(context.tasks[0].title,"Check Aubree's Bed");
+ assert.equal(context.tasks[0].date,`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`);
+ assert.equal(context.tasks[0].time,null);
+ assert.equal(context.tasks[0].endTime,null);
+ assert.equal(context.saves,1);
 });
 test('speech ending refreshes the preview for the reported noon phrase',()=>{
  const {context,element,Recognition}=setup();
