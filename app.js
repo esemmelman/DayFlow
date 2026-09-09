@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m50
+// DayFlow v0.8-m51
 
-const DAYFLOW_VERSION='v0.8-m50';
+const DAYFLOW_VERSION='v0.8-m51';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -296,6 +296,7 @@ function addInboxTask(){
  renderInbox();
 }
 addBtn.onclick=()=>openNat();
+document.getElementById('manualAddBtn').onclick=()=>{addInboxTask();newTask.focus();};
 newTask.addEventListener('keydown',event=>{
  if(event.key==='Enter'){event.preventDefault();addInboxTask();}
 });
@@ -306,6 +307,8 @@ const androidCalendarLayout=document.getElementById('androidCalendarLayout');
 const androidSchedule=document.getElementById('androidSchedule');
 const androidFind=document.getElementById('androidFind');
 const androidAbout=document.getElementById('androidAbout');
+const androidAddForm=document.getElementById('androidAddForm');
+const androidNewTask=document.getElementById('androidNewTask');
 const androidSearchForm=document.getElementById('androidSearchForm');
 const androidSearch=document.getElementById('androidSearch');
 const androidSearchCancel=document.getElementById('androidSearchCancel');
@@ -462,11 +465,29 @@ function closeAndroidPanel(){
 
 function showAndroidButtons(){
  document.body.classList.remove('android-searching');
+ androidAddForm.hidden=true;
  androidSearchForm.hidden=true;
  androidNav.hidden=false;
 }
 
 androidAdd.onclick=()=>{closeAndroidPanel();openNat();};
+function openAndroidManualAdd(){
+ closeAndroidPanel();
+ androidNav.hidden=true;
+ androidSearchForm.hidden=true;
+ androidAddForm.hidden=false;
+ androidNewTask.focus();
+}
+androidAddForm.addEventListener('submit',event=>{
+ event.preventDefault();
+ if(!androidNewTask.value.trim())return;
+ newTask.value=androidNewTask.value;
+ addInboxTask();
+ androidNewTask.value='';
+ androidNewTask.blur();
+ showAndroidButtons();
+});
+document.getElementById('androidAddCancel').onclick=()=>{showAndroidButtons();androidAbout.focus();};
 
 function searchResultDetail(task){
  if(!task.date)return 'Inbox';
@@ -681,10 +702,11 @@ androidAbout.onclick=()=>{
  androidPanel.hidden=false;
  const more=document.createElement('div');more.className='android-more';
  const account=document.createElement('button');account.type='button';account.textContent='Account';account.onclick=()=>{closeAndroidPanel();openAuthDialog();};
+ const add=document.createElement('button');add.type='button';add.textContent='Add';add.onclick=openAndroidManualAdd;
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- more.append(account,about);androidPanel.replaceChildren(more);
+ more.append(account,add,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}

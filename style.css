@@ -188,6 +188,11 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android-calendar-grid button.has-items::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;bottom:4px;left:50%;transform:translateX(-50%)}
 .android-calendar-grid button.today{background:#1b7f5a}
 .android-more{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.android-more .android-about{grid-column:1/-1}
+.android-add-form{display:none}
+.android .android-add-form{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+.android .android-add-form[hidden]{display:none}
+.android-add-form input{flex:1 1 180px;min-width:0;min-height:48px;padding:8px;border:1px solid #ccd5df;border-radius:6px}
 .android-about{text-align:center;font-weight:700;padding:12px}
 .search-results{display:grid;gap:6px}.search-editor{width:min(520px,100%)}.search-editor .search-results{max-height:min(55vh,460px);overflow:auto}
 .search-message{margin:0;text-align:center;color:#52606d;padding:8px}
