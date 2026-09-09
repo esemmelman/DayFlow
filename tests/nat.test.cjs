@@ -39,6 +39,28 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
  assert.throws(()=>parse('tomorrow'),/task name/);
  assert.throws(()=>parse('Trip September 15 to September 18'),/each day separately/);
 });
+test('unspecified AM/PM uses the first future time',()=>{
+ const {context}=setup();
+ for(const [hour,minute,text,date,time,endTime] of [
+  [7,58,'Dentist at 9','2026-9-9','09:00','09:30'],
+  [10,0,'Dentist at 9','2026-9-9','21:00','21:30'],
+  [21,30,'Dentist at 9','2026-9-10','09:00','09:30'],
+  [9,0,'Dentist at 9','2026-9-9','21:00','21:30'],
+  [7,58,'Dentist at 8:15','2026-9-9','08:15','08:45'],
+  [11,0,'Lunch at 12','2026-9-9','12:00','12:30'],
+  [13,0,'Call at 12','2026-9-10','00:00','00:30'],
+  [7,58,'Dentist at 9 PM','2026-9-9','21:00','21:30'],
+  [22,0,'Dentist tomorrow at 9','2026-9-10','09:00','09:30'],
+  [10,0,'Dentist today at 9','2026-9-9','21:00','21:30'],
+  [10,0,'Meeting from 9 to 10','2026-9-9','21:00','22:00'],
+  [7,58,'Meeting from 9 to 10 PM','2026-9-9','21:00','22:00'],
+  [7,58,'Call in 2 hours','2026-9-9','09:58','10:28']
+ ]){
+  const result=context.parseNaturalTask(text,new Date(2026,8,9,hour,minute));
+  assert.deepEqual([result.date,result.time,result.endTime],[date,time,endTime],`${hour}:${minute} ${text}`);
+ }
+});
+
 test('preview replaces an explicit schedule with today all day for an undated task',()=>{
  const {context,element}=setup();
  context.openNat();

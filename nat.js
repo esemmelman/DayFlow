@@ -5,6 +5,19 @@ function parseNaturalTask(transcript,now=new Date()){
  const results=chrono.parse(text,now,{forwardDate:true});
  if(results.length>1)throw new Error('Please add one task and one date at a time.');
  const result=results[0];
+ // Resolve an unspecified AM/PM before using Chrono's forward-date guesses.
+ if(result?.start.isCertain('hour')&&!result.start.isCertain('meridiem')&&!result.end?.isCertain('meridiem')&&!/\b(?:noon|midnight|morning|afternoon|evening|night|tonight)\b/i.test(result.text)){
+  const resolve=(components,reference,base,rollDay)=>{
+   const date=new Date(base);
+   date.setHours(components.get('hour')%12,components.get('minute')||0,0,0);
+   if(date<=reference)date.setHours(date.getHours()+12);
+   if(rollDay&&date<=reference)date.setHours(date.getHours()+12);
+   for(const [key,value] of Object.entries({year:date.getFullYear(),month:date.getMonth()+1,day:date.getDate(),hour:date.getHours()}))components.assign(key,value);
+  };
+  const hasDate=['day','month','year','weekday'].some(key=>result.start.isCertain(key));
+  resolve(result.start,now,hasDate?result.start.date():now,!hasDate);
+  if(result.end?.isCertain('hour'))resolve(result.end,result.start.date(),result.start.date(),true);
+ }
  const title=(result?`${text.slice(0,result.index)} ${text.slice(result.index+result.text.length)}`:text)
   .replace(/\b(?:on|at|for)\s*$/i,'').replace(/\s+/g,' ').replace(/^[\s,.;]+|[\s,.;]+$/g,'');
  if(!title)throw new Error('Include a task name.');
