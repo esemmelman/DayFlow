@@ -11,9 +11,14 @@ function parseNaturalTask(transcript,now=new Date()){
  const dateKey=date=>`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
  const timeValue=components=>`${String(components.get('hour')).padStart(2,'0')}:${String(components.get('minute')||0).padStart(2,'0')}`;
  if(result?.end&&dateKey(result.start.date())!==dateKey(result.end.date()))throw new Error('Please add each day separately for an appointment spanning multiple days.');
+ const time=result?.start.isCertain('hour')?timeValue(result.start):null;
+ let endTime=result?.end?.isCertain('hour')?timeValue(result.end):null;
+ if(time&&!endTime){
+  const endMinutes=(result.start.get('hour')*60+(result.start.get('minute')||0)+30)%1440;
+  endTime=`${String(Math.floor(endMinutes/60)).padStart(2,'0')}:${String(endMinutes%60).padStart(2,'0')}`;
+ }
  return {title,date:result?dateKey(result.start.date()):null,
-  time:result?.start.isCertain('hour')?timeValue(result.start):null,
-  endTime:result?.end?.isCertain('hour')?timeValue(result.end):null,
+  time,endTime,
   notes:'',color:'#2f80ed'};
 }
 
@@ -22,6 +27,31 @@ const natText=document.getElementById('natText');
 const natStatus=document.getElementById('natStatus');
 const natListen=document.getElementById('natListen');
 let natRecognition=null,natReturnFocus=null;
+
+function updateNatPreview(){
+ const preview=document.getElementById('natPreview');
+ const title=document.getElementById('natPreviewTitle');
+ const schedule=document.getElementById('natPreviewSchedule');
+ title.textContent='';schedule.textContent='';preview.hidden=true;
+ if(!natText.value.trim())return;
+ try{
+  const task=parseNaturalTask(natText.value);
+  title.textContent=task.title;
+  if(task.date){
+   const [year,month,day]=task.date.split('-').map(Number);
+   const date=new Date(year,month-1,day).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+   schedule.textContent=task.time
+    ?`${date} · ${formatTime(task.time)}–${formatTime(task.endTime)}${task.endTime<task.time?' (ends next day)':''}`
+    :`${date} · All day`;
+  }
+  schedule.hidden=!task.date;
+  preview.hidden=false;
+ }catch(error){
+  title.textContent=error.message;
+  schedule.hidden=true;
+  preview.hidden=false;
+ }
+}
 
 function showNatError(message){
  natStatus.textContent=message;
@@ -74,6 +104,7 @@ function startNatListening(){
    const transcript=Array.from(event.results,result=>result[0].transcript).join(' ');
    natText.value=[existingText,transcript].filter(Boolean).join(' ');
    natText.setCustomValidity?.('');
+   updateNatPreview();
   };
   recognition.onerror=event=>{
    if(natRecognition!==recognition)return;
@@ -92,11 +123,12 @@ function startNatListening(){
 function openNat(){
  natReturnFocus=document.activeElement;
  natText.value='';natDialog.hidden=false;
+ updateNatPreview();
  natListen.focus();
  startNatListening();
 }
 natListen.onclick=startNatListening;
-natText.addEventListener('input',()=>{stopNatListening();natText.setCustomValidity?.('');});
+natText.addEventListener('input',()=>{stopNatListening();natText.setCustomValidity?.('');updateNatPreview();});
 document.getElementById('natForm').onsubmit=event=>{event.preventDefault();addNaturalTask();};
 natDialog.querySelectorAll('[data-nat-close]').forEach(button=>button.onclick=closeNat);
 document.addEventListener('keydown',event=>{

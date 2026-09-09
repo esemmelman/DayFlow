@@ -21,12 +21,14 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
  const {parse}=setup();
  for(const [text,title,date,time,endTime] of [
   ['Buy milk','Buy milk',null,null,null],
-  ['Add dentist tomorrow at 3 PM','dentist','2026-9-10','15:00',null],
-  ['Remind me to call Sam Friday at noon','call Sam','2026-9-11','12:00',null],
+  ['Add dentist tomorrow at 3 PM','dentist','2026-9-10','15:00','15:30'],
+  ['Remind me to call Sam Friday at noon','call Sam','2026-9-11','12:00','12:30'],
   ['Lunch tomorrow from 1 PM to 2 PM','Lunch','2026-9-10','13:00','14:00'],
   ['Pick up groceries tomorrow','Pick up groceries','2026-9-10',null,null],
-  ['Call Sam at 3 PM','Call Sam','2026-9-9','15:00',null],
-  ['Dentist on September 15 at 9 AM','Dentist','2026-9-15','09:00',null]
+  ['Call Sam at 3 PM','Call Sam','2026-9-9','15:00','15:30'],
+  ['Dentist on September 15 at 9 AM','Dentist','2026-9-15','09:00','09:30'],
+  ['Call tomorrow at 3:45 PM','Call','2026-9-10','15:45','16:15'],
+  ['Read tomorrow at 11:45 PM','Read','2026-9-10','23:45','00:15']
  ]){
   const result=parse(text);
   assert.deepEqual([result.title,result.date,result.time,result.endTime],[title,date,time,endTime],text);
@@ -34,6 +36,24 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
  assert.throws(()=>parse(''),/task first/);
  assert.throws(()=>parse('tomorrow'),/task name/);
  assert.throws(()=>parse('Trip September 15 to September 18'),/each day separately/);
+});
+test('preview shows only the interpreted draft and clears stale dates',()=>{
+ const {context,element}=setup();
+ context.openNat();
+ assert.equal(element('natPreview').hidden,true);
+ element('natText').value='Dentist September 15 at 3 PM';
+ context.updateNatPreview();
+ assert.equal(element('natPreviewTitle').textContent,'Dentist');
+ assert.match(element('natPreviewSchedule').textContent,/Sep.*15.*15:00.*15:30/);
+ assert.equal(element('natPreviewSchedule').hidden,false);
+ element('natText').value='Buy milk';
+ context.updateNatPreview();
+ assert.equal(element('natPreviewTitle').textContent,'Buy milk');
+ assert.equal(element('natPreviewSchedule').hidden,true);
+ element('natText').value='';
+ context.updateNatPreview();
+ assert.equal(element('natPreview').hidden,true);
+ assert.equal(context.saves,0);
 });
 test('speech stays editable until Done; repeated submission and late results do not duplicate',()=>{
  const {context,element,Recognition}=setup();

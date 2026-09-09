@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DayFlow v0.8-m47</title>
-<link rel="stylesheet" href="style.css?v=0.8-m47">
+<title>DayFlow v0.8-m48</title>
+<link rel="stylesheet" href="style.css?v=0.8-m48">
 </head><body>
-<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m47</span></div>
+<header class="toolbar"><div class="logo">DayFlow <span class="version">v0.8-m48</span></div>
 <div class="desktop-actions"><button id="scheduleBtn" type="button" aria-pressed="false">Schedule</button><button id="calendarLayoutBtn" type="button" aria-pressed="false">CL</button><button id="todayBtn">Today</button><button id="desktopFindBtn" type="button">Find</button><button id="accountBtn" type="button">Connect</button><span id="syncStatus" class="sync-status" aria-live="polite">Local only</span></div>
 <nav id="androidNav" class="android-nav" aria-label="DayFlow menu"><button id="androidAdd" type="button" aria-label="Spk: add a task by voice">Spk</button><button id="androidCal" type="button">Cal</button><button id="androidCalendarLayout" type="button" aria-pressed="false">CL</button><button id="androidSchedule" type="button" aria-pressed="false">Sch</button><button id="androidFind" type="button">Find</button><button id="androidAbout" type="button" aria-haspopup="true">More</button></nav>
 <form id="androidSearchForm" class="android-search-form" hidden><input id="androidSearch" type="search" enterkeyhint="search" autocomplete="off" aria-label="Search tasks" placeholder="Search tasks"><button id="androidSearchCancel" type="button">Cancel</button></form>
@@ -46,6 +46,7 @@
 <p class="visually-hidden" id="natStatus" role="status" aria-live="polite"></p>
 <label class="editor-field">Task<textarea id="natText" rows="3"></textarea></label>
 <div class="nat-actions"><button id="natListen" type="button">Speak again</button><button type="submit">Done</button><button type="button" data-nat-close>Cancel</button></div>
+<div id="natPreview" class="nat-preview" aria-live="polite" aria-atomic="true" hidden><strong id="natPreviewTitle"></strong><div id="natPreviewSchedule" hidden></div></div>
 </form>
 </div>
 <div id="authDialog" class="modal" hidden>
@@ -117,7 +118,7 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js?v=0.8-m47"></script>
+<script src="app.js?v=0.8-m48"></script>
 <script src="vendor/chrono-en.min.js?v=2.10.0"></script>
-<script src="nat.js?v=0.8-m47"></script>
+<script src="nat.js?v=0.8-m48"></script>
 </body></html>
