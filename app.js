@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m52
+// DayFlow v0.8-m53
 
-const DAYFLOW_VERSION='v0.8-m52';
+const DAYFLOW_VERSION='v0.8-m53';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -1152,7 +1152,6 @@ const editorEndTime=document.getElementById('editorEndTime');
 const editorReminderEnabled=document.getElementById('editorReminderEnabled');
 const editorReminderMinutes=document.getElementById('editorReminderMinutes');
 const editorReminderEmail=document.getElementById('editorReminderEmail');
-const editorReminderPush=document.getElementById('editorReminderPush');
 const editorNotes=document.getElementById('editorNotes');
 const editorNoteLinks=document.getElementById('editorNoteLinks');
 const editorNoteLinkList=document.getElementById('editorNoteLinkList');
@@ -1271,7 +1270,6 @@ function updateEditorTimeFields(){
  const reminderOptionsDisabled=reminderUnavailable||!editorReminderEnabled.checked;
  editorReminderMinutes.disabled=reminderOptionsDisabled;
  editorReminderEmail.disabled=reminderOptionsDisabled;
- editorReminderPush.disabled=reminderOptionsDisabled;
 }
 
 function openAppointmentEditor(task=null,defaults={}){
@@ -1288,7 +1286,6 @@ function openAppointmentEditor(task=null,defaults={}){
  editorReminderEnabled.checked=Boolean(task?.reminderEnabled);
  editorReminderMinutes.value=task?.reminderEnabled?String(task.reminderMinutes??''):'';
  editorReminderEmail.checked=task?.reminderEmail!==false;
- editorReminderPush.checked=Boolean(task?.reminderPush);
  editorNotes.value=task?.notes??'';
  renderNoteLinks();
  editorColor.value=task?.color??'#2f80ed';
@@ -1339,10 +1336,10 @@ appointmentForm.addEventListener('submit',event=>{
   reminderEnabled,
   reminderMinutes:reminderEnabled?reminderMinutes:45,
   reminderEmail:reminderEnabled&&editorReminderEmail.checked,
-  reminderPush:reminderEnabled&&editorReminderPush.checked,
+  reminderPush:false,
   timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'
  };
- if(reminderEnabled&&!appointment.reminderEmail&&!appointment.reminderPush){editorError.textContent='Choose email, push, or both for this reminder.';return;}
+ if(reminderEnabled&&!appointment.reminderEmail){editorError.textContent='Choose email for this reminder.';return;}
  if(reminderEnabled&&!currentUser){editorError.textContent='Connect your DayFlow account before enabling reminders.';return;}
  const existing=tasks.find(task=>task.id===editingAppointmentId);
  if(existing)Object.assign(existing,appointment);

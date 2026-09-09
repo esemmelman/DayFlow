@@ -32,7 +32,8 @@ function parseNaturalTask(transcript,now=new Date()){
  }
  return {title,date:dateKey(result?result.start.date():now),
   time,endTime,
-  notes:'',color:'#2f80ed'};
+  notes:'',color:'#2f80ed',
+  reminderEnabled:Boolean(time),reminderMinutes:20,reminderEmail:true,reminderPush:false};
 }
 
 const natDialog=document.getElementById('natDialog');
@@ -114,7 +115,7 @@ function startNatListening(){
   natStatus.textContent='Listening… Say one task, including its date and time if needed.';
   recognition.onresult=event=>{
    if(natRecognition!==recognition)return;
-   const transcript=Array.from(event.results,result=>result[0].transcript).join(' ');
+   const transcript=Array.from(event.results,result=>result[0].transcript).join(' ').replace(/\bAubrey\b/gi,'Aubree');
    natText.value=[existingText,transcript].filter(Boolean).join(' ');
    natText.setCustomValidity?.('');
    updateNatPreview();

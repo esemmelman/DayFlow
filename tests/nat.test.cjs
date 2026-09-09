@@ -61,6 +61,21 @@ test('unspecified AM/PM uses the first future time',()=>{
  }
 });
 
+test('Spk saves timed items with a 20-minute email reminder and all-day items without one',()=>{
+ const {context,element}=setup();
+ for(const [text,enabled] of [['Dentist tomorrow at 9 AM',true],['Buy milk tomorrow',false],['Read a book',false]]){
+  context.openNat();
+  element('natText').value=text;
+  element('natForm').onsubmit({preventDefault(){}});
+  const task=context.tasks.at(-1);
+  assert.equal(task.reminderEnabled,enabled,text);
+  assert.equal(task.reminderMinutes,20);
+  assert.equal(task.reminderEmail,true);
+  assert.equal(task.reminderPush,false);
+ }
+ assert.equal(context.saves,3);
+});
+
 test('preview replaces an explicit schedule with today all day for an undated task',()=>{
  const {context,element}=setup();
  context.openNat();
@@ -130,6 +145,21 @@ test('speech stays editable until Done; repeated submission and late results do 
  assert.match(element('natStatus').textContent,/Added/);
  assert.equal(element('natListen').disabled,false);
 });
+test('Spk corrects Aubrey in preview and saved title, including possessives',()=>{
+ const {context,element,Recognition}=setup();
+ context.openNat();
+ const result=[{transcript:"Check aubrey's bed and AUBREY’s room with Aubreys"}];
+ result.isFinal=false;
+ Recognition.latest.onresult({results:[result]});
+ const expected="Check Aubree's bed and Aubree’s room with Aubreys";
+ assert.equal(element('natText').value,expected);
+ assert.equal(element('natPreviewTitle').textContent,expected);
+ result.isFinal=true;
+ Recognition.latest.onresult({results:[result]});
+ element('natForm').onsubmit({preventDefault(){}});
+ assert.equal(context.tasks[0].title,expected);
+});
+
 test('speaking again appends to the draft without saving',()=>{
  const {context,element,Recognition}=setup();
  context.openNat();
