@@ -35,7 +35,7 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
  assert.throws(()=>parse('tomorrow'),/task name/);
  assert.throws(()=>parse('Trip September 15 to September 18'),/each day separately/);
 });
-test('final speech saves once; interim speech and late results do not save',()=>{
+test('speech stays editable until Done; repeated submission and late results do not duplicate',()=>{
  const {context,element,Recognition}=setup();
  context.openNat();
  const recognition=Recognition.latest;
@@ -45,10 +45,33 @@ test('final speech saves once; interim speech and late results do not save',()=>
  result.isFinal=true;
  recognition.onresult({results:[result]});
  recognition.onresult({results:[result]});
+ recognition.onend();
+ assert.equal(context.tasks.length,0);
+ assert.equal(element('natText').value,'Buy milk');
+ assert.equal(element('natDialog').hidden,false);
+ element('natText').value='Buy bread';
+ element('natForm').onsubmit({preventDefault(){}});
+ recognition.onresult({results:[result]});
+ element('natForm').onsubmit({preventDefault(){}});
  assert.equal(context.tasks.length,1);
+ assert.equal(context.tasks[0].title,'Buy bread');
+ assert.equal(element('natDialog').hidden,true);
  assert.equal(context.saves,1);
  assert.match(element('natStatus').textContent,/Added/);
  assert.equal(element('natListen').disabled,false);
+});
+test('speaking again appends to the draft without saving',()=>{
+ const {context,element,Recognition}=setup();
+ context.openNat();
+ const result=[{transcript:'Call Sam'}];result.isFinal=true;
+ Recognition.latest.onresult({results:[result]});
+ Recognition.latest.onend();
+ context.startNatListening();
+ const continued=[{transcript:'tomorrow at noon'}];continued.isFinal=true;
+ Recognition.latest.onresult({results:[continued]});
+ Recognition.latest.onresult({results:[continued]});
+ assert.equal(element('natText').value,'Call Sam tomorrow at noon');
+ assert.equal(context.saves,0);
 });
 test('cancel ignores late speech; denied and unsupported voice allow typing',()=>{
  const {context,element,Recognition}=setup();

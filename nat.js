@@ -42,6 +42,7 @@ function closeNat(){
  target?.focus();
 }
 function addNaturalTask(){
+ if(natDialog.hidden)return;
  try{
   const task=parseNaturalTask(natText.value);
   stopNatListening();
@@ -50,6 +51,7 @@ function addNaturalTask(){
   renderEverything();
   natStatus.textContent=`Added “${task.title}”${task.date?` on ${task.date}${task.time?` at ${formatTime(task.time)}`:' (all day)'}`:' to the inbox'}.`;
   natText.value='';
+  closeNat();
  }catch(error){showNatError(error.message);}
 }
 function startNatListening(){
@@ -59,6 +61,7 @@ function startNatListening(){
  if(!Recognition){natStatus.textContent='Voice input is unavailable in this browser. Type your task below.';natText.focus();return;}
  try{
   const recognition=new Recognition();
+  const existingText=natText.value.trim();
   natRecognition=recognition;
   recognition.lang='en-US';
   recognition.continuous=false;
@@ -68,8 +71,9 @@ function startNatListening(){
   natStatus.textContent='Listening… Say one task, including its date and time if needed.';
   recognition.onresult=event=>{
    if(natRecognition!==recognition)return;
-   natText.value=Array.from(event.results,result=>result[0].transcript).join(' ');
-   if(Array.from(event.results).every(result=>result.isFinal))addNaturalTask();
+   const transcript=Array.from(event.results,result=>result[0].transcript).join(' ');
+   natText.value=[existingText,transcript].filter(Boolean).join(' ');
+   natText.setCustomValidity?.('');
   };
   recognition.onerror=event=>{
    if(natRecognition!==recognition)return;
@@ -80,7 +84,7 @@ function startNatListening(){
   recognition.onend=()=>{
    if(natRecognition!==recognition)return;
    natRecognition=null;natListen.disabled=false;natListen.textContent='Speak again';
-   natStatus.textContent='Listening ended. Try again, or edit the text and choose Add.';
+   natStatus.textContent='Listening ended. Review the task and choose Done to save.';
   };
   recognition.start();
  }catch(error){stopNatListening();showNatError('Could not start the microphone. Try again or type below.');}
