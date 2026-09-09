@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m44
+// DayFlow v0.8-m45
 
-const DAYFLOW_VERSION='v0.8-m44';
+const DAYFLOW_VERSION='v0.8-m45';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -705,7 +705,8 @@ androidAbout.onclick=()=>{
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- more.append(account,about);androidPanel.replaceChildren(more);
+ const nat=document.createElement('button');nat.type='button';nat.textContent='Nat';nat.setAttribute('aria-label','Nat: add a task by voice');nat.onclick=()=>{closeAndroidPanel();openNat();};
+ more.append(account,nat,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
