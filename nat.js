@@ -1,6 +1,7 @@
 /* English date parsing: vendored chrono-node 2.10.0 (MIT). */
 function parseNaturalTask(transcript,now=new Date()){
- const text=transcript.trim().replace(/^(?:please\s+)?(?:add\s+(?:(?:a|an)\s+)?(?:task|appointment|event)\s+(?:to\s+)?|add\s+|schedule\s+|remind me to\s+)/i,'');
+ const longDuration=/(?:^|\s)long[.!?,;]*$/i.test(transcript.trim());
+ const text=transcript.trim().replace(/(?:^|\s)long[.!?,;]*$/i,'').trim().replace(/^(?:please\s+)?(?:add\s+(?:(?:a|an)\s+)?(?:task|appointment|event)\s+(?:to\s+)?|add\s+|schedule\s+|remind me to\s+)/i,'');
  if(!text)throw new Error('Say or type a task first.');
  const results=chrono.parse(text,now,{forwardDate:true});
  if(results.length>1)throw new Error('Please add one task and one date at a time.');
@@ -19,15 +20,15 @@ function parseNaturalTask(transcript,now=new Date()){
   if(result.end?.isCertain('hour'))resolve(result.end,result.start.date(),result.start.date(),true);
  }
  const title=(result?`${text.slice(0,result.index)} ${text.slice(result.index+result.text.length)}`:text)
-  .replace(/\b(?:on|at|for)\s*$/i,'').replace(/\s+/g,' ').replace(/^[\s,.;]+|[\s,.;]+$/g,'');
+  .replace(/\b(?:on|at|for)\s*$/i,'').replace(/\s+/g,' ').replace(/^[\s,.;]+|[\s,.;]+$/g,'').replace(/\p{L}/u,letter=>letter.toUpperCase());
  if(!title)throw new Error('Include a task name.');
  const dateKey=date=>`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
  const timeValue=components=>`${String(components.get('hour')).padStart(2,'0')}:${String(components.get('minute')||0).padStart(2,'0')}`;
  if(result?.end&&dateKey(result.start.date())!==dateKey(result.end.date()))throw new Error('Please add each day separately for an appointment spanning multiple days.');
  const time=result?.start.isCertain('hour')?timeValue(result.start):null;
  let endTime=result?.end?.isCertain('hour')?timeValue(result.end):null;
- if(time&&!endTime){
-  const endMinutes=(result.start.get('hour')*60+(result.start.get('minute')||0)+30)%1440;
+ if(time&&(!endTime||longDuration)){
+  const endMinutes=(result.start.get('hour')*60+(result.start.get('minute')||0)+(longDuration?60:10))%1440;
   endTime=`${String(Math.floor(endMinutes/60)).padStart(2,'0')}:${String(endMinutes%60).padStart(2,'0')}`;
  }
  return {title,date:dateKey(result?result.start.date():now),

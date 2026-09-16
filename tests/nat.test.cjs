@@ -23,14 +23,14 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
   ['Buy milk','Buy milk','2026-9-9',null,null],
   ["Check Aubree's Bed","Check Aubree's Bed",'2026-9-9',null,null],
   ['Check Aubree’s Bed','Check Aubree’s Bed','2026-9-9',null,null],
-  ['Add dentist tomorrow at 3 PM','dentist','2026-9-10','15:00','15:30'],
-  ['Remind me to call Sam Friday at noon','call Sam','2026-9-11','12:00','12:30'],
+  ['Add dentist tomorrow at 3 PM','Dentist','2026-9-10','15:00','15:10'],
+  ['Remind me to call Sam Friday at noon','Call Sam','2026-9-11','12:00','12:10'],
   ['Lunch tomorrow from 1 PM to 2 PM','Lunch','2026-9-10','13:00','14:00'],
   ['Pick up groceries tomorrow','Pick up groceries','2026-9-10',null,null],
-  ['Call Sam at 3 PM','Call Sam','2026-9-9','15:00','15:30'],
-  ['Dentist on September 15 at 9 AM','Dentist','2026-9-15','09:00','09:30'],
-  ['Call tomorrow at 3:45 PM','Call','2026-9-10','15:45','16:15'],
-  ['Read tomorrow at 11:45 PM','Read','2026-9-10','23:45','00:15']
+  ['Call Sam at 3 PM','Call Sam','2026-9-9','15:00','15:10'],
+  ['Dentist on September 15 at 9 AM','Dentist','2026-9-15','09:00','09:10'],
+  ['Call tomorrow at 3:45 PM','Call','2026-9-10','15:45','15:55'],
+  ['Read tomorrow at 11:45 PM','Read','2026-9-10','23:45','23:55']
  ]){
   const result=parse(text);
   assert.deepEqual([result.title,result.date,result.time,result.endTime],[title,date,time,endTime],text);
@@ -39,22 +39,48 @@ test('extracts title, relative dates, spoken times and ranges',()=>{
  assert.throws(()=>parse('tomorrow'),/task name/);
  assert.throws(()=>parse('Trip September 15 to September 18'),/each day separately/);
 });
+test('Spk duration defaults and trailing long work in preview and saved items',()=>{
+ const {context,element,parse}=setup();
+ for(const [text,title,time,endTime] of [
+  ['call Sam at 3 PM long','Call Sam','15:00','16:00'],
+  ['call Sam at 11:45 PM LONG.','Call Sam','23:45','00:45'],
+  ['call Sam at 11:55 PM','Call Sam','23:55','00:05'],
+  ['take a long walk at 3 PM','Take a long walk','15:00','15:10'],
+  ['prolong at 3 PM','Prolong','15:00','15:10'],
+  ['meeting from 1 PM to 3 PM long','Meeting','13:00','14:00'],
+  ['buy milk long','Buy milk',null,null]
+ ]){
+  const task=parse(text);
+  assert.deepEqual([task.title,task.time,task.endTime],[title,time,endTime],text);
+ }
+ for(const [suffix,endTime] of [['','15:10'],[' long','16:00']]){
+  context.openNat();
+  element('natText').value=`add call Sam tomorrow at 3 PM${suffix}`;
+  context.updateNatPreview();
+  assert.equal(element('natPreviewTitle').textContent,'Call Sam');
+  assert.ok(element('natPreviewSchedule').textContent.includes(endTime));
+  element('natForm').onsubmit({preventDefault(){}});
+  assert.equal(context.tasks.at(-1).title,'Call Sam');
+  assert.equal(context.tasks.at(-1).endTime,endTime);
+ }
+});
+
 test('unspecified AM/PM uses the first future time',()=>{
  const {context}=setup();
  for(const [hour,minute,text,date,time,endTime] of [
-  [7,58,'Dentist at 9','2026-9-9','09:00','09:30'],
-  [10,0,'Dentist at 9','2026-9-9','21:00','21:30'],
-  [21,30,'Dentist at 9','2026-9-10','09:00','09:30'],
-  [9,0,'Dentist at 9','2026-9-9','21:00','21:30'],
-  [7,58,'Dentist at 8:15','2026-9-9','08:15','08:45'],
-  [11,0,'Lunch at 12','2026-9-9','12:00','12:30'],
-  [13,0,'Call at 12','2026-9-10','00:00','00:30'],
-  [7,58,'Dentist at 9 PM','2026-9-9','21:00','21:30'],
-  [22,0,'Dentist tomorrow at 9','2026-9-10','09:00','09:30'],
-  [10,0,'Dentist today at 9','2026-9-9','21:00','21:30'],
+  [7,58,'Dentist at 9','2026-9-9','09:00','09:10'],
+  [10,0,'Dentist at 9','2026-9-9','21:00','21:10'],
+  [21,30,'Dentist at 9','2026-9-10','09:00','09:10'],
+  [9,0,'Dentist at 9','2026-9-9','21:00','21:10'],
+  [7,58,'Dentist at 8:15','2026-9-9','08:15','08:25'],
+  [11,0,'Lunch at 12','2026-9-9','12:00','12:10'],
+  [13,0,'Call at 12','2026-9-10','00:00','00:10'],
+  [7,58,'Dentist at 9 PM','2026-9-9','21:00','21:10'],
+  [22,0,'Dentist tomorrow at 9','2026-9-10','09:00','09:10'],
+  [10,0,'Dentist today at 9','2026-9-9','21:00','21:10'],
   [10,0,'Meeting from 9 to 10','2026-9-9','21:00','22:00'],
   [7,58,'Meeting from 9 to 10 PM','2026-9-9','21:00','22:00'],
-  [7,58,'Call in 2 hours','2026-9-9','09:58','10:28']
+  [7,58,'Call in 2 hours','2026-9-9','09:58','10:08']
  ]){
   const result=context.parseNaturalTask(text,new Date(2026,8,9,hour,minute));
   assert.deepEqual([result.date,result.time,result.endTime],[date,time,endTime],`${hour}:${minute} ${text}`);
@@ -83,7 +109,7 @@ test('preview replaces an explicit schedule with today all day for an undated ta
  element('natText').value='Dentist September 15 at 3 PM';
  context.updateNatPreview();
  assert.equal(element('natPreviewTitle').textContent,'Dentist');
- assert.match(element('natPreviewSchedule').textContent,/Sep.*15.*15:00.*15:30/);
+ assert.match(element('natPreviewSchedule').textContent,/Sep.*15.*15:00.*15:10/);
  assert.equal(element('natPreviewSchedule').hidden,false);
  element('natText').value='Buy milk';
  context.updateNatPreview();
@@ -115,9 +141,9 @@ test('speech ending refreshes the preview for the reported noon phrase',()=>{
  element('natText').value='make chicken at noon';
  Recognition.latest.onend();
  assert.equal(element('natPreview').hidden,false);
- assert.equal(element('natPreviewTitle').textContent,'make chicken');
+ assert.equal(element('natPreviewTitle').textContent,'Make chicken');
  assert.equal(element('natPreviewSchedule').hidden,false);
- assert.match(element('natPreviewSchedule').textContent,/12:00.*12:30/);
+ assert.match(element('natPreviewSchedule').textContent,/12:00.*12:10/);
  assert.equal(context.saves,0);
 });
 test('speech stays editable until Done; repeated submission and late results do not duplicate',()=>{
