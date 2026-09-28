@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m55
+// DayFlow v0.8-m56
 
-const DAYFLOW_VERSION='v0.8-m55';
+const DAYFLOW_VERSION='v0.8-m56';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -703,10 +703,11 @@ androidAbout.onclick=()=>{
  const more=document.createElement('div');more.className='android-more';
  const account=document.createElement('button');account.type='button';account.textContent='Account';account.onclick=()=>{closeAndroidPanel();openAuthDialog();};
  const add=document.createElement('button');add.type='button';add.textContent='Add';add.onclick=openAndroidManualAdd;
+ const page=document.createElement('button');page.type='button';page.textContent='Page';page.onclick=()=>{closeAndroidPanel();window.openDayFlowPage(androidAbout);};
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- more.append(account,add,about);androidPanel.replaceChildren(more);
+ more.append(account,add,page,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
