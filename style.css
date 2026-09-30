@@ -97,6 +97,7 @@ body.touch-dragging{user-select:none}
 .appointments .task{margin:0}
 .modal[hidden]{display:none}
 .modal{position:fixed;z-index:10;inset:0;display:grid;place-items:center;padding:16px}
+#confirmationDialog{z-index:30}
 .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35)}
 .appointment-editor{position:relative;width:min(480px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:8px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.2)}
 .editor-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}

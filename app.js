@@ -926,7 +926,7 @@ function finishScheduleMove(){
 
 let touchDrag=null,swipeDelete=null;
 
-function finishSwipeDelete(event,cancelled=false){
+async function finishSwipeDelete(event,cancelled=false){
  if(!swipeDelete||event.pointerId!==swipeDelete.pointerId)return;
  const swipe=swipeDelete;
  swipeDelete=null;
@@ -934,20 +934,11 @@ function finishSwipeDelete(event,cancelled=false){
  if(!swipe.active)return;
  ignoreTaskClickUntil=Date.now()+500;
  swipe.element.style.transition='transform .18s ease, opacity .18s ease';
- if(!cancelled&&swipe.element.getBoundingClientRect().left<=1){
-  swipe.element.style.transform='translateX(-110vw)';
-  swipe.element.style.opacity='0';
-  setTimeout(()=>{
-   const index=tasks.findIndex(task=>task.id===swipe.taskId);
-   if(index<0)return;
-   tasks.splice(index,1);
-   refreshAppointments();
-  },180);
- }else{
-  swipe.element.style.transform='';
-  swipe.element.style.opacity='';
-  setTimeout(()=>{swipe.element.style.transition='';},180);
- }
+ const shouldDelete=!cancelled&&swipe.element.getBoundingClientRect().left<=1;
+ swipe.element.style.transform='';
+ swipe.element.style.opacity='';
+ setTimeout(()=>{swipe.element.style.transition='';},180);
+ if(shouldDelete&&await confirmTaskDeletion(swipe.taskId))refreshAppointments();
 }
 
 function positionTouchGhost(event){
@@ -1350,10 +1341,17 @@ appointmentForm.addEventListener('submit',event=>{
  refreshAppointments();
 });
 
-editorDelete.onclick=()=>{
- const index=tasks.findIndex(task=>task.id===editingAppointmentId);
- if(index<0)return;
+async function confirmTaskDeletion(taskId){
+ const task=tasks.find(task=>task.id===taskId);
+ if(!task||!await requestConfirmation(`Delete "${task.title}"? This cannot be undone.`))return false;
+ const index=tasks.findIndex(task=>task.id===taskId);
+ if(index<0)return false;
  tasks.splice(index,1);
+ return true;
+}
+
+editorDelete.onclick=async()=>{
+ if(!await confirmTaskDeletion(editingAppointmentId))return;
  closeAppointmentEditor();
  refreshAppointments();
 };
@@ -1364,7 +1362,7 @@ editorStartTime.onchange=updateEditorTimeFields;
 editorReminderEnabled.onchange=updateEditorTimeFields;
 appointmentEditor.querySelectorAll('[data-editor-cancel]').forEach(button=>button.onclick=closeAppointmentEditor);
 document.addEventListener('keydown',event=>{
- if(event.key==='Escape'&&!appointmentEditor.hidden)closeAppointmentEditor();
+ if(event.key==='Escape'&&!appointmentEditor.hidden&&confirmationDialog.hidden)closeAppointmentEditor();
 });
 
 const accountBtn=document.getElementById('accountBtn'),authDialog=document.getElementById('authDialog'),authForm=document.getElementById('authForm');
@@ -1386,6 +1384,7 @@ function finishConfirmation(confirmed){
  confirmationReturnFocus=null;
 }
 function requestConfirmation(message){
+ if(confirmationResolver)return Promise.resolve(false);
  confirmationMessage.textContent=message;
  confirmationReturnFocus=document.activeElement;
  confirmationDialog.hidden=false;
