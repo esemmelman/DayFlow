@@ -28,14 +28,14 @@ test('rows group all dated items chronologically and sort each date by start tim
  app.renderRows();
  const rows=app.rowsList.children[0].children[0].children;
  assert.equal(rows[0].children[0].textContent,'Sep. - Oct.');
- assert.equal(rows[rows.length-1].children[0].textContent,'2 Sat');
+ assert.equal(rows[rows.length-1].children[0].textContent,'2  Sat');
  assert.equal(rows.some(row=>row.children[0].title==='September 24, 2026'),false);
  assert.deepEqual(Array.from(rows[4].children[1].children,item=>item.textContent),['<Early> 8',',  ','Late 7:30\u20138',',  ','Alpha',',  ','Zebra']);
  assert.equal(rows[4].children[1].children[2].tag,'button');
  assert.equal(rows[4].className,'rows-today');
- assert.equal(rows[7].children[0].textContent,'4 Sun');
+ assert.equal(rows[7].children[0].textContent,'4  Sun');
  assert.equal(rows[8].className,'rows-week-gap');
- assert.equal(rows[9].children[0].textContent,'5 Mon');
+ assert.equal(rows[9].children[0].textContent,'5  Mon');
 });
 test('empty rows and closing the view restore the main display',()=>{
  const app=setup([{title:'Inbox'}]);
@@ -82,6 +82,6 @@ test('Rows heading shows the next timed item and minutes, then advances after it
  assert.ok(labels.includes('Oct.'));
  assert.ok(labels.includes('Oct. - Nov.'));
  assert.ok(labels.includes('Dec. - Jan.'));
- const monday=rows.findIndex(row=>row.children[0].textContent==='26 Mon');
+ const monday=rows.findIndex(row=>row.children[0].textContent==='26  Mon');
  assert.equal(rows[monday-1].children[0].textContent,'Oct. - Nov.');
  });
