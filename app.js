@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m65
+// DayFlow v0.8-m66
 
-const DAYFLOW_VERSION='v0.8-m65';
+const DAYFLOW_VERSION='v0.8-m66';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -418,7 +418,7 @@ function renderRows(){
   const row=document.createElement('tr');
   if(dateKey===key(new Date()))row.className='rows-today';
   const heading=document.createElement('th');heading.scope='row';heading.className='rows-date';
-  heading.textContent=`${day}  ${date.toLocaleDateString('en-US',{weekday:'short'})}`;
+  heading.textContent=`${day}   ${date.toLocaleDateString('en-US',{weekday:'short'})}`;
   heading.title=date.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
   const cell=document.createElement('td');cell.className='rows-items';
   dayTasks.sort((a,b)=>a.time==null?(b.time==null?compareTaskTitles(a,b):1):b.time==null?-1:compareTaskStartTimes(a,b));
