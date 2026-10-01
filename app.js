@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m60
+// DayFlow v0.8-m61
 
-const DAYFLOW_VERSION='v0.8-m60';
+const DAYFLOW_VERSION='v0.8-m61';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -373,6 +373,11 @@ function renderSchedule(){
  });
 }
 
+function formatRowsTime(time){
+ const [hour,minute]=time.split(':').map(Number);
+ return `${hour%12||12}${minute?`:${String(minute).padStart(2,'0')}`:''}`;
+}
+
 function renderRows(){
  rowsList.replaceChildren();
  const monday=new Date();monday.setHours(0,0,0,0);monday.setDate(monday.getDate()-(monday.getDay()+6)%7);
@@ -387,6 +392,7 @@ function renderRows(){
  groups.forEach((dayTasks,dateKey)=>{
   const [year,month,day]=dateKey.split('-').map(Number),date=new Date(year,month-1,day);
   const row=document.createElement('tr');
+  if(dateKey===key(new Date()))row.className='rows-today';
   const heading=document.createElement('th');heading.scope='row';heading.className='rows-date';
   heading.textContent=`${String(month).padStart(2,'0')}/${String(day).padStart(2,'0')} ${date.toLocaleDateString('en-US',{weekday:'short'})}`;
   heading.title=date.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
@@ -395,10 +401,14 @@ function renderRows(){
   dayTasks.forEach((task,index)=>{
    if(index)cell.append(document.createTextNode(',  '));
    const item=document.createElement('button');item.type='button';item.className='rows-item';
-   const time=task.time==null?'':formatTimeRange(task.time,task.endTime);
+   const time=task.time==null?'':`${formatRowsTime(task.time)}${task.endTime?`\u2013${formatRowsTime(task.endTime)}`:''}`;
    item.textContent=time?`${task.title} ${time}`:task.title;item.onclick=()=>openAppointmentEditor(task);cell.append(item);
   });
   row.append(heading,cell);body.append(row);
+  if(date.getDay()===0){
+   const spacer=document.createElement('tr');spacer.className='rows-week-gap';spacer.setAttribute('aria-hidden','true');
+   const gap=document.createElement('td');gap.colSpan=2;gap.textContent='\u00a0';spacer.append(gap);body.append(spacer);
+  }
  });
  table.append(body);rowsList.append(table);
 }

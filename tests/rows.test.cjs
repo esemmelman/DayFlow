@@ -11,7 +11,7 @@ function setup(tasks){
   setScheduleOpen(){},setCalendarLayoutOpen(){},closeAndroidPanel(){},showAndroidButtons(){}};
  vm.createContext(context);
  vm.runInContext(source.slice(source.indexOf('function compareTaskTitles('),source.indexOf('function seedWeeklyItemsOnce(')),context);
- vm.runInContext(source.slice(source.indexOf('function renderRows('),source.indexOf('function setScheduleOpen(')),context);
+ vm.runInContext(source.slice(source.indexOf('function formatRowsTime('),source.indexOf('function setScheduleOpen(')),context);
  vm.runInContext(source.slice(source.indexOf('function key('),source.indexOf('function runAllDayRollover(')),context);
  return context;
 }
@@ -30,17 +30,28 @@ test('rows group all dated items chronologically and sort each date by start tim
  assert.equal(rows[0].children[0].textContent,'09/28 Mon');
  assert.equal(rows[rows.length-1].children[0].textContent,'01/02 Sat');
  assert.equal(rows.some(row=>row.children[0].textContent==='09/24 Thu'),false);
- assert.deepEqual(Array.from(rows[3].children[1].children,item=>item.textContent),['<Early> 08:00',',  ','Late 19:30\u201320:00',',  ','Alpha',',  ','Zebra']);
+ assert.deepEqual(Array.from(rows[3].children[1].children,item=>item.textContent),['<Early> 8',',  ','Late 7:30\u20138',',  ','Alpha',',  ','Zebra']);
  assert.equal(rows[3].children[1].children[2].tag,'button');
+ assert.equal(rows[3].className,'rows-today');
+ assert.equal(rows[6].children[0].textContent,'10/04 Sun');
+ assert.equal(rows[7].className,'rows-week-gap');
+ assert.equal(rows[8].children[0].textContent,'10/05 Mon');
 });
 test('empty rows and closing the view restore the main display',()=>{
  const app=setup([{title:'Inbox'}]);
  app.setRowsOpen(true);
  assert.equal(app.rowsPanel.hidden,false);
  assert.equal(app.mainLayout.hidden,true);
- assert.equal(app.rowsList.children[0].children[0].children.length,7);
+ assert.equal(app.rowsList.children[0].children[0].children.length,8);
  assert.equal(app.rowsList.children[0].children[0].children[0].children[0].textContent,'09/28 Mon');
  app.setRowsOpen(false);
  assert.equal(app.rowsPanel.hidden,true);
  assert.equal(app.mainLayout.hidden,false);
+});
+
+test('Rw times omit periods and zero minutes',()=>{
+ const app=setup([]);
+ assert.equal(app.formatRowsTime('00:00'),'12');
+ assert.equal(app.formatRowsTime('12:00'),'12');
+ assert.equal(app.formatRowsTime('13:05'),'1:05');
 });

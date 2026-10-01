@@ -224,10 +224,13 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .rows-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .rows-scroll:focus-visible{outline:3px solid #1c64c8;outline-offset:2px}
 .rows-table{width:100%;border-collapse:collapse;font-size:.9rem}
-.rows-table th,.rows-table td{border:1px solid #ccd5df;padding:0 6px;text-align:left;white-space:nowrap}
-.rows-date{position:sticky;left:0;z-index:1;width:1%;background:#fff;font-weight:700}
-.rows-items{font-weight:600}
-.rows-item{min-height:22px;padding:0;line-height:22px;background:transparent;color:inherit;border-radius:0;font-weight:inherit;white-space:nowrap}
+.rows-table th,.rows-table td{border:1px solid #ccd5df;padding:2px 6px;text-align:left;white-space:nowrap}
+.rows-date{position:sticky;left:0;z-index:1;width:1%;background:#fff;font-weight:400}
+.rows-items{font-weight:400}
+.rows-item{min-height:32px;padding:2px 0;background:transparent;color:inherit;border-radius:0;font-weight:inherit;white-space:nowrap}
 .rows-item:hover{text-decoration:underline}
 .android .rows-panel{padding:8px}
 .android .rows-panel .schedule-bar{top:56px}
+
+.rows-today .rows-date,.rows-today .rows-items{font-weight:700}
+.rows-week-gap td{height:32px;border:0}
