@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m57
+// DayFlow v0.8-m59
 
-const DAYFLOW_VERSION='v0.8-m57';
+const DAYFLOW_VERSION='v0.8-m59';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -83,7 +83,7 @@ async function syncTasks(){
  }catch(error){console.error('DayFlow sync failed',error);setSyncStatus('Sync failed','error');}
  finally{syncInProgress=false;if(syncAgain){syncAgain=false;syncTasks();}}
 }
-function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();if(!calendarLayoutPanel.hidden)renderCalendarLayout();if(!schedulePanel.hidden)renderSchedule();}
+function renderEverything(){renderInbox();drawCal();renderSelectedDay();renderMobileAgenda();if(!calendarLayoutPanel.hidden)renderCalendarLayout();if(!schedulePanel.hidden)renderSchedule();if(!rowsPanel.hidden)renderRows();}
 async function loadRemoteTasks(){
  setSyncStatus('Loading…','pending');
  const {data,error}=await supabaseClient.from('tasks').select('*').order('created_at');
@@ -321,6 +321,9 @@ const scheduleBtn=document.getElementById('scheduleBtn');
 const schedulePanel=document.getElementById('schedulePanel');
 const scheduleList=document.getElementById('scheduleList');
 const scheduleCloseBtn=document.getElementById('scheduleCloseBtn');
+const rowsPanel=document.getElementById('rowsPanel');
+const rowsList=document.getElementById('rowsList');
+document.getElementById('rowsCloseBtn').onclick=()=>setRowsOpen(false);
 let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
 const calendarLayoutBtn=document.getElementById('calendarLayoutBtn');
 const calendarLayoutPanel=document.getElementById('calendarLayoutPanel');
@@ -370,12 +373,46 @@ function renderSchedule(){
  });
 }
 
+function renderRows(){
+ rowsList.replaceChildren();
+ const dated=tasks.filter(task=>task.date).sort(compareTaskSchedule);
+ if(!dated.length){const empty=document.createElement('p');empty.className='schedule-empty';empty.textContent='No dated items.';rowsList.append(empty);return;}
+ const table=document.createElement('table');table.className='rows-table';table.setAttribute('aria-label','Items in date and start time order');
+ const body=document.createElement('tbody');
+ const groups=new Map();
+ dated.forEach(task=>{if(!groups.has(task.date))groups.set(task.date,[]);groups.get(task.date).push(task);});
+ groups.forEach((dayTasks,dateKey)=>{
+  const [year,month,day]=dateKey.split('-').map(Number),date=new Date(year,month-1,day);
+  const row=document.createElement('tr');
+  const heading=document.createElement('th');heading.scope='row';heading.className='rows-date';
+  heading.textContent=`${String(month).padStart(2,'0')}/${String(day).padStart(2,'0')} ${date.toLocaleDateString('en-US',{weekday:'short'})}`;
+  heading.title=date.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  const cell=document.createElement('td');cell.className='rows-items';
+  dayTasks.forEach((task,index)=>{
+   if(index)cell.append(document.createTextNode(',  '));
+   const item=document.createElement('button');item.type='button';item.className='rows-item';
+   const time=task.time==null?'All day':formatTimeRange(task.time,task.endTime);
+   item.textContent=`${time} ${task.title}`;item.onclick=()=>openAppointmentEditor(task);cell.append(item);
+  });
+  row.append(heading,cell);body.append(row);
+ });
+ table.append(body);rowsList.append(table);
+}
+
+function setRowsOpen(open){
+ if(open){setScheduleOpen(false);setCalendarLayoutOpen(false);}
+ rowsPanel.hidden=!open;mainLayout.hidden=open;
+ if(open){closeAndroidPanel();showAndroidButtons();renderRows();rowsPanel.scrollIntoView({block:'start'});}
+ else androidAbout.focus();
+}
+
 function compareDateKeys(a,b){
  const [ay,am,ad]=a.split('-').map(Number),[by,bm,bd]=b.split('-').map(Number);
  return Date.UTC(ay,am-1,ad)-Date.UTC(by,bm-1,bd);
 }
 
 function setScheduleOpen(open){
+ rowsPanel.hidden=true;
  schedulePanel.hidden=!open;mainLayout.hidden=open;calendarLayoutPanel.hidden=true;
  scheduleBtn.setAttribute('aria-pressed',String(open));androidSchedule.setAttribute('aria-pressed',String(open));calendarLayoutBtn.setAttribute('aria-pressed','false');androidCalendarLayout.setAttribute('aria-pressed','false');
  if(open){closeAndroidPanel();showAndroidButtons();renderSchedule();schedulePanel.scrollIntoView({block:'start'});}
@@ -423,6 +460,7 @@ function renderCalendarLayout(){
 
 function setCalendarLayoutOpen(open){
  if(open)setScheduleOpen(false);
+ rowsPanel.hidden=true;
  calendarLayoutPanel.hidden=!open;mainLayout.hidden=open;calendarLayoutBtn.setAttribute('aria-pressed',String(open));androidCalendarLayout.setAttribute('aria-pressed',String(open));
  if(open){
   closeAndroidPanel();showAndroidButtons();
@@ -674,6 +712,7 @@ function enableHorizontalMonthSwipe(element){
 }
 
 androidCal.onclick=()=>{
+ if(!rowsPanel.hidden){setRowsOpen(false);renderMobileAgenda();return;}
  if(!schedulePanel.hidden){
   setScheduleOpen(false);
   renderMobileAgenda();
@@ -704,10 +743,11 @@ androidAbout.onclick=()=>{
  const account=document.createElement('button');account.type='button';account.textContent='Account';account.onclick=()=>{closeAndroidPanel();openAuthDialog();};
  const add=document.createElement('button');add.type='button';add.textContent='Add';add.onclick=openAndroidManualAdd;
  const page=document.createElement('button');page.type='button';page.textContent='Page';page.onclick=()=>{closeAndroidPanel();window.openDayFlowPage(androidAbout);};
+ const rows=document.createElement('button');rows.type='button';rows.textContent='Rows';rows.onclick=()=>setRowsOpen(rowsPanel.hidden);
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- more.append(account,add,page,about);androidPanel.replaceChildren(more);
+ more.append(account,add,page,rows,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
@@ -1302,7 +1342,7 @@ function refreshAppointments(){
  drawCal();
  renderSelectedDay();
  renderMobileAgenda();
- if(!schedulePanel.hidden)renderSchedule();
+ if(!schedulePanel.hidden)renderSchedule();if(!rowsPanel.hidden)renderRows();
 }
 
 appointmentForm.addEventListener('submit',event=>{
