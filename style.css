@@ -228,7 +228,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .rows-scroll:focus-visible{outline:3px solid #1c64c8;outline-offset:2px}
 .rows-table{width:100%;border-collapse:collapse;font-size:.9rem}
 .rows-table th,.rows-table td{border:1px solid #ccd5df;padding:0 6px;text-align:left;white-space:nowrap}
-.rows-date{position:sticky;left:0;z-index:1;width:1%;background:#fff;font-size:1rem;font-weight:700;white-space:pre}
+.rows-table .rows-date{position:sticky;left:0;z-index:1;width:1%;background:#fff;font-size:1rem;font-weight:700;white-space:pre}
 .rows-items{font-size:1rem;font-weight:400}
 .rows-item{min-height:24px;padding:0;background:transparent;color:inherit;border-radius:0;font-weight:inherit;white-space:nowrap}
 .rows-item:hover{text-decoration:underline}
