@@ -6,7 +6,7 @@ const source=fs.readFileSync('app.js','utf8');
 function setup(tasks){
  const element=tag=>({tag,children:[],hidden:true,append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(){},scrollIntoView(){},focus(){}});
  class FixedDate extends Date{constructor(...args){super(...(args.length?args:['2026-10-01T12:00:00']));}}
- const context={Date:FixedDate,usesAndroidAgenda:true,rowsBtn:element('button'),androidRows:element('button'),tasks,rowsList:element('div'),rowsPanel:element('section'),mainLayout:element('main'),androidAbout:element('button'),document:{createElement:element,createTextNode:text=>({textContent:text})},
+ const context={Date:FixedDate,usesAndroidAgenda:true,rowsBtn:element('button'),androidRows:element('button'),tasks,rowsNextItem:element('span'),rowsNextMinutes:element('span'),formatTime:time=>time,rowsList:element('div'),rowsPanel:element('section'),mainLayout:element('main'),androidAbout:element('button'),document:{createElement:element,createTextNode:text=>({textContent:text})},
   timeToMinutes:time=>Number(time.split(':')[0])*60+Number(time.split(':')[1]),formatTimeRange:(start,end)=>end?`${start}–${end}`:start,
   setScheduleOpen(){},setCalendarLayoutOpen(){},closeAndroidPanel(){},showAndroidButtons(){}};
  vm.createContext(context);
@@ -54,4 +54,22 @@ test('Rw times omit periods and zero minutes',()=>{
  assert.equal(app.formatRowsTime('00:00'),'12');
  assert.equal(app.formatRowsTime('12:00'),'12');
  assert.equal(app.formatRowsTime('13:05'),'1:05');
+});
+
+test('Rows heading shows the next timed item and minutes, then advances after its start',()=>{
+ const app=setup([
+  {date:'2026-10-1',time:'11:00',title:'Past'},
+  {date:'2026-10-1',time:null,title:'All day'},
+  {date:'2026-10-2',time:'09:00',title:'Tomorrow'},
+  {date:'2026-10-1',time:'12:05',title:'Next'}
+ ]);
+ app.renderRows();
+ assert.equal(app.rowsNextItem.textContent,' - 12:05 Next');
+ assert.equal(app.rowsNextMinutes.textContent,'  5');
+ app.updateRowsNextItem(new Date('2026-10-01T12:05:00'));
+ assert.equal(app.rowsNextItem.textContent,' - 9 Tomorrow');
+ assert.equal(app.rowsNextMinutes.textContent,'  1255');
+ app.updateRowsNextItem(new Date('2026-10-02T09:00:00'));
+ assert.equal(app.rowsNextItem.textContent,'');
+ assert.equal(app.rowsNextMinutes.textContent,'');
 });

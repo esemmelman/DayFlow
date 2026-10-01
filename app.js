@@ -323,6 +323,8 @@ const scheduleList=document.getElementById('scheduleList');
 const scheduleCloseBtn=document.getElementById('scheduleCloseBtn');
 const rowsPanel=document.getElementById('rowsPanel');
 const rowsList=document.getElementById('rowsList');
+const rowsNextItem=document.getElementById('rowsNextItem');
+const rowsNextMinutes=document.getElementById('rowsNextMinutes');
 document.getElementById('rowsCloseBtn').onclick=()=>setRowsOpen(false);
 let androidPickerMonth=new Date(mobileAgendaStart.getFullYear(),mobileAgendaStart.getMonth(),1);
 const rowsBtn=document.getElementById('rowsBtn');
@@ -378,7 +380,21 @@ function formatRowsTime(time){
  return `${hour%12||12}${minute?`:${String(minute).padStart(2,'0')}`:''}`;
 }
 
+function updateRowsNextItem(now=new Date()){
+ let next=null,nextStart=Infinity;
+ tasks.forEach(task=>{
+  if(!task.date||task.time==null)return;
+  const [year,month,day]=task.date.split('-').map(Number),[hour,minute]=task.time.split(':').map(Number);
+  const start=new Date(year,month-1,day,hour,minute).getTime();
+  if(start>now.getTime()&&start<nextStart){next=task;nextStart=start;}
+ });
+ rowsNextItem.textContent=next?` - ${formatRowsTime(next.time)} ${next.title}`:'';
+ rowsNextItem.title=next?`${next.date} ${formatTime(next.time)} ${next.title}`:'';
+ rowsNextMinutes.textContent=next?`  ${Math.ceil((nextStart-now.getTime())/60000)}`:'';
+}
+
 function renderRows(){
+ updateRowsNextItem();
  rowsList.replaceChildren();
  const monday=new Date();monday.setHours(0,0,0,0);monday.setDate(monday.getDate()-(monday.getDay()+6)%7);
  const dated=tasks.filter(task=>task.date&&compareDateKeys(task.date,key(monday))>=0).sort(compareTaskSchedule);
@@ -1269,6 +1285,7 @@ function minutesUntilStart(startTime,now=new Date()){
 }
 
 function updateMinutesUntil(){
+ if(!rowsPanel.hidden)updateRowsNextItem();
  const now=new Date();
  document.querySelectorAll('.minutes-until').forEach(element=>{
   const minutes=minutesUntilStart(element.dataset.startTime,now);
