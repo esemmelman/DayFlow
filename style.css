@@ -188,7 +188,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android-calendar-grid button{position:relative;min-width:0;padding:4px}
 .android-calendar-grid button.has-items::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;bottom:4px;left:50%;transform:translateX(-50%)}
 .android-calendar-grid button.today{background:#1b7f5a}
-.android-more{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.android-more{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .android-more>button{min-width:0;padding-inline:8px;white-space:nowrap}
 .android-more .android-about{grid-column:1/-1}
 .page-editor{box-sizing:border-box;width:min(800px,calc(100% - 24px));height:85vh;height:85dvh;max-height:calc(100% - 24px);margin:auto;padding:18px;border:0;border-radius:8px;background:#fff;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.2)}
@@ -224,10 +224,10 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .rows-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .rows-scroll:focus-visible{outline:3px solid #1c64c8;outline-offset:2px}
 .rows-table{width:100%;border-collapse:collapse;font-size:.9rem}
-.rows-table th,.rows-table td{border:1px solid #ccd5df;padding:2px 6px;text-align:left;white-space:nowrap}
+.rows-table th,.rows-table td{border:1px solid #ccd5df;padding:0 6px;text-align:left;white-space:nowrap}
 .rows-date{position:sticky;left:0;z-index:1;width:1%;background:#fff;font-weight:700}
 .rows-items{font-weight:600}
-.rows-item{min-height:32px;padding:2px 0;background:transparent;color:inherit;border-radius:0;font-weight:inherit;white-space:nowrap}
+.rows-item{min-height:22px;padding:0;line-height:22px;background:transparent;color:inherit;border-radius:0;font-weight:inherit;white-space:nowrap}
 .rows-item:hover{text-decoration:underline}
 .android .rows-panel{padding:8px}
 .android .rows-panel .schedule-bar{top:56px}
