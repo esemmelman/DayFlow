@@ -236,4 +236,4 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .android .rows-panel .schedule-bar{top:56px}
 
 .rows-today .rows-date,.rows-today .rows-items{font-weight:700}
-.rows-week-gap td{height:32px;border:0}
+.rows-week-gap th{height:32px;border:0;vertical-align:bottom;padding-bottom:3px}

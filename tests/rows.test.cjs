@@ -27,15 +27,15 @@ test('rows group all dated items chronologically and sort each date by start tim
  ]);
  app.renderRows();
  const rows=app.rowsList.children[0].children[0].children;
- assert.equal(rows[0].children[0].textContent,'09/28 Mon');
- assert.equal(rows[rows.length-1].children[0].textContent,'01/02 Sat');
- assert.equal(rows.some(row=>row.children[0].textContent==='09/24 Thu'),false);
- assert.deepEqual(Array.from(rows[3].children[1].children,item=>item.textContent),['<Early> 8',',  ','Late 7:30\u20138',',  ','Alpha',',  ','Zebra']);
- assert.equal(rows[3].children[1].children[2].tag,'button');
- assert.equal(rows[3].className,'rows-today');
- assert.equal(rows[6].children[0].textContent,'10/04 Sun');
- assert.equal(rows[7].className,'rows-week-gap');
- assert.equal(rows[8].children[0].textContent,'10/05 Mon');
+ assert.equal(rows[0].children[0].textContent,'Sep. - Oct.');
+ assert.equal(rows[rows.length-1].children[0].textContent,'2 Sat');
+ assert.equal(rows.some(row=>row.children[0].title==='September 24, 2026'),false);
+ assert.deepEqual(Array.from(rows[4].children[1].children,item=>item.textContent),['<Early> 8',',  ','Late 7:30\u20138',',  ','Alpha',',  ','Zebra']);
+ assert.equal(rows[4].children[1].children[2].tag,'button');
+ assert.equal(rows[4].className,'rows-today');
+ assert.equal(rows[7].children[0].textContent,'4 Sun');
+ assert.equal(rows[8].className,'rows-week-gap');
+ assert.equal(rows[9].children[0].textContent,'5 Mon');
 });
 test('empty rows and closing the view restore the main display',()=>{
  const app=setup([{title:'Inbox'}]);
@@ -43,7 +43,7 @@ test('empty rows and closing the view restore the main display',()=>{
  assert.equal(app.rowsPanel.hidden,false);
  assert.equal(app.mainLayout.hidden,true);
  assert.equal(app.rowsList.children[0].children[0].children.length,8);
- assert.equal(app.rowsList.children[0].children[0].children[0].children[0].textContent,'09/28 Mon');
+ assert.equal(app.rowsList.children[0].children[0].children[0].children[0].textContent,'Sep. - Oct.');
  app.setRowsOpen(false);
  assert.equal(app.rowsPanel.hidden,true);
  assert.equal(app.mainLayout.hidden,false);
@@ -73,3 +73,15 @@ test('Rows heading shows the next timed item and minutes, then advances after it
  assert.equal(app.rowsNextItem.textContent,'');
  assert.equal(app.rowsNextMinutes.textContent,'');
 });
+
+ test('week month labels include full weeks across month and year boundaries',()=>{
+ const app=setup([{date:'2027-1-1',title:'New year'}]);
+ app.renderRows();
+ const rows=app.rowsList.children[0].children[0].children;
+ const labels=rows.filter(row=>row.className==='rows-week-gap').map(row=>row.children[0].textContent);
+ assert.ok(labels.includes('Oct.'));
+ assert.ok(labels.includes('Oct. - Nov.'));
+ assert.ok(labels.includes('Dec. - Jan.'));
+ const monday=rows.findIndex(row=>row.children[0].textContent==='26 Mon');
+ assert.equal(rows[monday-1].children[0].textContent,'Oct. - Nov.');
+ });

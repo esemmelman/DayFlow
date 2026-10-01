@@ -407,10 +407,18 @@ function renderRows(){
  dated.forEach(task=>{if(!groups.has(task.date))groups.set(task.date,[]);groups.get(task.date).push(task);});
  groups.forEach((dayTasks,dateKey)=>{
   const [year,month,day]=dateKey.split('-').map(Number),date=new Date(year,month-1,day);
+  if(date.getDay()===1){
+   const weekEnd=new Date(date);weekEnd.setDate(weekEnd.getDate()+6);
+   const monthLabel=value=>`${value.toLocaleDateString('en-US',{month:'short'})}.`;
+   const spacer=document.createElement('tr');spacer.className='rows-week-gap';
+   const gap=document.createElement('th');gap.colSpan=2;gap.scope='colgroup';
+   gap.textContent=date.getMonth()===weekEnd.getMonth()?monthLabel(date):`${monthLabel(date)} - ${monthLabel(weekEnd)}`;
+   spacer.append(gap);body.append(spacer);
+  }
   const row=document.createElement('tr');
   if(dateKey===key(new Date()))row.className='rows-today';
   const heading=document.createElement('th');heading.scope='row';heading.className='rows-date';
-  heading.textContent=`${String(month).padStart(2,'0')}/${String(day).padStart(2,'0')} ${date.toLocaleDateString('en-US',{weekday:'short'})}`;
+  heading.textContent=`${day} ${date.toLocaleDateString('en-US',{weekday:'short'})}`;
   heading.title=date.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
   const cell=document.createElement('td');cell.className='rows-items';
   dayTasks.sort((a,b)=>a.time==null?(b.time==null?compareTaskTitles(a,b):1):b.time==null?-1:compareTaskStartTimes(a,b));
@@ -421,10 +429,6 @@ function renderRows(){
    item.textContent=time?`${task.title} ${time}`:task.title;item.onclick=()=>openAppointmentEditor(task);cell.append(item);
   });
   row.append(heading,cell);body.append(row);
-  if(date.getDay()===0){
-   const spacer=document.createElement('tr');spacer.className='rows-week-gap';spacer.setAttribute('aria-hidden','true');
-   const gap=document.createElement('td');gap.colSpan=2;gap.textContent='\u00a0';spacer.append(gap);body.append(spacer);
-  }
  });
  table.append(body);rowsList.append(table);
 }
