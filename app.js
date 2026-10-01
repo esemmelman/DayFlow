@@ -411,9 +411,9 @@ function renderRows(){
    const weekEnd=new Date(date);weekEnd.setDate(weekEnd.getDate()+6);
    const monthLabel=value=>`${value.toLocaleDateString('en-US',{month:'short'})}.`;
    const spacer=document.createElement('tr');spacer.className='rows-week-gap';
-   const gap=document.createElement('th');gap.colSpan=2;gap.scope='colgroup';
+   const gap=document.createElement('th');gap.className='rows-month';gap.scope='row';
    gap.textContent=date.getMonth()===weekEnd.getMonth()?monthLabel(date):`${monthLabel(date)} - ${monthLabel(weekEnd)}`;
-   spacer.append(gap);body.append(spacer);
+   spacer.append(gap,document.createElement('td'));body.append(spacer);
   }
   const row=document.createElement('tr');
   if(dateKey===key(new Date()))row.className='rows-today';
