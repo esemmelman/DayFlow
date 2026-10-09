@@ -48,14 +48,16 @@
   const arm=()=>{clearTimeout(silence);silence=setTimeout(()=>{if(token!==session)return;if(entry.value.trim())add();else{stop();status.textContent='No speech heard. Click to try again.';}},3000);};
   function start(){
    if(token!==session)return;
-   const rec=new Speech();recognition=rec;rec.continuous=true;rec.interimResults=true;rec.lang=navigator.language||'en-US';
+   const rec=new Speech();recognition=rec;// Capture one finalized utterance at a time. Mobile recognizers can otherwise
+   // return cumulative phrase snapshots as separate continuous results.
+   rec.continuous=false;rec.interimResults=false;rec.lang=navigator.language||'en-US';
    let segment='';
-   rec.onstart=()=>{if(token===session){status.textContent='Listening… items are added after 3 seconds of silence.';if(!silence)arm();}};
-   rec.onspeechstart=()=>{if(token===session){clearTimeout(silence);silence=null;}};
-   rec.onspeechend=()=>{if(token===session)arm();};
-   rec.onresult=event=>{if(token!==session)return;segment=Array.from(event.results,result=>result[0].transcript).join(' ');entry.value=[base,transcript,segment].filter(Boolean).join(' ');arm();};
-   rec.onerror=event=>{if(token!==session)return;if(event.error==='no-speech')return;stop();entry.readOnly=false;status.textContent='Voice input failed ('+event.error+'). Double-click to type or click to retry.';};
-   rec.onend=()=>{if(token!==session)return;transcript=[transcript,segment].filter(Boolean).join(' ');recognition=null;start();};
+   rec.onstart=()=>{if(token===session&&recognition===rec){status.textContent='Listening… items are added after 3 seconds of silence.';if(!silence)arm();}};
+   rec.onspeechstart=()=>{if(token===session&&recognition===rec){clearTimeout(silence);silence=null;}};
+   rec.onspeechend=()=>{if(token===session&&recognition===rec)arm();};
+   rec.onresult=event=>{if(token!==session||recognition!==rec)return;segment=event.results[event.results.length-1]?.[0]?.transcript?.trim()||'';entry.value=[base,transcript,segment].filter(Boolean).join(' ');arm();};
+   rec.onerror=event=>{if(token!==session||recognition!==rec)return;if(event.error==='no-speech')return;stop();entry.readOnly=false;status.textContent='Voice input failed ('+event.error+'). Double-click to type or click to retry.';};
+   rec.onend=()=>{if(token!==session||recognition!==rec)return;transcript=[transcript,segment].filter(Boolean).join(' ');recognition=null;start();};
    try{rec.start();}catch{stop();keyboard();status.textContent='Voice input could not start. Type an item instead.';}
   }
   start();

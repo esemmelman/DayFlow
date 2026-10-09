@@ -54,3 +54,22 @@ test('long pressing opens edit and delete actions; movement cancels the menu',()
  assert.equal(app.get('listItems').children.length,0);
  const reload=setup(app.values);assert.equal(reload.get('listItems').children.length,0);
 });
+
+test('mobile cumulative phrase results replace each other instead of duplicating words',()=>{
+ const app=setup();app.open();const entry=app.get('listEntry');entry.listeners.click({detail:1});app.run(350);
+ const rec=app.sessions[0];assert.equal(rec.continuous,false);assert.equal(rec.interimResults,false);
+ const phrases=['why','why is','why is it','why is it duplicating','why is it duplicating the first word'];
+ const results=[];
+ for(const transcript of phrases){results.push(Object.assign([{transcript}],{isFinal:true}));rec.onresult({results});}
+ assert.equal(entry.value,'why is it duplicating the first word');
+ app.run(3000);assert.equal(app.get('listItems').children[0].children[1].textContent,phrases.at(-1));
+});
+test('ended recognizer cannot replay text; separate utterances and intentional repetition survive',()=>{
+ const app=setup();app.open();const entry=app.get('listEntry');entry.listeners.click({detail:1});app.run(350);
+ const first=app.sessions[0];first.onresult({results:[[{transcript:'check sprinkler'}]]});first.onend();
+ const second=app.sessions[1];first.onend();first.onresult({results:[[{transcript:'check sprinkler'}]]});
+ assert.equal(app.sessions.length,2);assert.equal(entry.value,'check sprinkler');
+ second.onresult({results:[[{transcript:'very very carefully'}]]});
+ assert.equal(entry.value,'check sprinkler very very carefully');app.run(3000);
+ assert.equal(app.get('listItems').children[0].children[1].textContent,'check sprinkler very very carefully');
+});
