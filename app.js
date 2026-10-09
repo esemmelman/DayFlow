@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m71
+// DayFlow v0.8-m72
 
-const DAYFLOW_VERSION='v0.8-m71';
+const DAYFLOW_VERSION='v0.8-m72';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 

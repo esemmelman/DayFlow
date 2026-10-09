@@ -249,7 +249,7 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .page-editor .editor-header{justify-content:flex-end}
 
 .page-editor{position:fixed;padding:6px 12px 12px}
-.page-editor .editor-header{position:absolute;top:0;right:0;margin:0}
+.page-editor .editor-header{position:absolute;top:0;right:-4px;margin:0}
 #pageClose{padding:0;width:32px;height:32px;min-height:0;line-height:32px}
 .page-editor .list-entry{margin:0 28px 0 0}
 #listEntry{padding:8px}
