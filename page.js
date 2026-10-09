@@ -10,9 +10,7 @@
    const row=document.createElement('li');row.className='list-item';row.draggable=true;
    const handle=document.createElement('span');handle.textContent='⠿';handle.className='list-handle';handle.setAttribute('aria-label','Drag to reorder');
    const label=document.createElement('span');label.textContent=text;label.className='list-label';
-   const up=document.createElement('button');up.type='button';up.textContent='↑';up.setAttribute('aria-label','Move item up');up.disabled=index===0;up.onclick=()=>move(index,index-1);
-   const down=document.createElement('button');down.type='button';down.textContent='↓';down.setAttribute('aria-label','Move item down');down.disabled=index===items.length-1;down.onclick=()=>move(index,index+1);
-   row.append(handle,label,up,down);
+   row.append(handle,label);
    row.addEventListener('dragstart',event=>{dragged=index;event.dataTransfer.setData('text/plain',String(index));event.dataTransfer.effectAllowed='move';});
    row.addEventListener('dragover',event=>event.preventDefault());
    row.addEventListener('drop',event=>{event.preventDefault();if(dragged!==null)move(dragged,index);dragged=null;});
@@ -32,7 +30,7 @@
  }
  function stop(){session++;clearTimeout(silence);silence=null;const old=recognition;recognition=null;old?.abort();}
  function add(){const value=entry.value.trim();stop();if(!value)return;items.push(value);entry.value='';render();save();}
- function keyboard(){clearTimeout(clickTimer);stop();entry.readOnly=false;entry.focus();status.textContent='Type an item and press Enter or Add.';}
+ function keyboard(){clearTimeout(clickTimer);stop();entry.readOnly=false;entry.focus();status.textContent='Type an item and press Enter.';}
  function listen(){
   stop();entry.readOnly=true;
   const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;

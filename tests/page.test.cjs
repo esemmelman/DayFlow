@@ -16,8 +16,10 @@ const event={preventDefault(){}};
 test('legacy page text becomes items; adding and ordering persist across reload',()=>{
  const app=setup(new Map([['dayflow:page','First\nSecond']]));app.open();
  assert.equal(app.get('listItems').children.length,2);
- app.get('listEntry').value='Third';app.get('listForm').listeners.submit(event);
- app.get('listItems').children[2].children[2].onclick();
+ app.get('listEntry').value='Third';app.get('listEntry').listeners.keydown({...event,key:'Enter'});
+ const rows=app.get('listItems').children;
+ rows[2].listeners.dragstart({dataTransfer:{setData(){}}});
+ rows[1].listeners.drop(event);
  assert.deepEqual(JSON.parse(app.values.get('dayflow:list')),['First','Third','Second']);
  const reload=setup(app.values);reload.open();assert.equal(reload.get('listItems').children[1].children[1].textContent,'Third');
 });
