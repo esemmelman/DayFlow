@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m69
+// DayFlow v0.8-m70
 
-const DAYFLOW_VERSION='v0.8-m69';
+const DAYFLOW_VERSION='v0.8-m70';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -1584,6 +1584,7 @@ signOutBtn.onclick=async()=>{await supabaseClient?.auth.signOut();closeAuthDialo
 async function applySession(session){
  const nextUser=session?.user||null;if(nextUser?.id===currentUser?.id)return;
  currentUser=nextUser;remoteTaskIds=new Set();
+ window.connectDayFlowList?.(supabaseClient,currentUser);
  if(taskChannel){await supabaseClient.removeChannel(taskChannel);taskChannel=null;}
  updateAccountUi();
  if(!currentUser){tasks=[];renderEverything();setSyncStatus(supabaseClient?'Not signed in':'Local only');return;}

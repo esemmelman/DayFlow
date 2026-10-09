@@ -28,3 +28,7 @@
 Reminders apply only to appointments with a date and start time. The app stores the device's IANA time zone on each reminder-enabled appointment so delivery remains correct across daylight-saving changes. The scheduled worker accepts reminders up to ten minutes late to tolerate a delayed Cron run, while the database prevents duplicates.
 
 At the first sign-in, existing `df6` local tasks are uploaded when the account has no remote tasks. Afterward, Supabase is the source of truth and local storage is only a fast cache.
+
+## List sync
+
+The List uses `public.list_items`, with account ownership enforced by RLS. Run the latest `supabase-schema.sql` for a new project. Signed-in devices sync added, edited, deleted, and reordered items through Realtime and refresh on focus or reconnect. Device-only items import once per account. Pending changes persist locally for retry after an offline session; concurrent edits to the same item use the last completed write. Deletions remain as tombstones to prevent stale caches from restoring items.

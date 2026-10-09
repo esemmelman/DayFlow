@@ -61,3 +61,19 @@ create table if not exists public.reminder_deliveries (
   unique (user_id, task_id, channel, scheduled_for)
 );
 alter table public.reminder_deliveries enable row level security;
+
+create table if not exists public.list_items (
+ user_id uuid not null references auth.users(id) on delete cascade,
+ id text not null,
+ text text not null,
+ position double precision not null default 0,
+ deleted boolean not null default false,
+ primary key (user_id,id)
+);
+alter table public.list_items enable row level security;
+grant select, insert, update, delete on public.list_items to authenticated;
+drop policy if exists "Users manage their own list items" on public.list_items;
+create policy "Users manage their own list items" on public.list_items for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+do $$ begin
+ if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='list_items') then alter publication supabase_realtime add table public.list_items; end if;
+end $$;

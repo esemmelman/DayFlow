@@ -4,12 +4,14 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 function setup(values=new Map()){
  const elements=new Map(),timers=new Map();let timer=0;
- function element(){return {value:'',children:[],listeners:{},addEventListener(name,fn){this.listeners[name]=fn;},setAttribute(){},focus(){},append(...nodes){this.children.push(...nodes);},replaceChildren(){this.children=[];},showModal(){},close(){this.listeners.close();}};}
+ function element(){return {value:'',children:[],listeners:{},addEventListener(name,fn){this.listeners[name]=fn;},setAttribute(){},focus(){},append(...nodes){this.children.push(...nodes);},replaceChildren(){this.children=[];},showModal(){this.open=true;},close(){this.open=false;this.listeners.close?.();}};}
  const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
  const sessions=[];
  class Speech{constructor(){sessions.push(this);}start(){this.onstart();}abort(){this.onend?.();}}
- const context={document:{getElementById:get,createElement:element},window:{SpeechRecognition:Speech},navigator:{language:'en-US'},localStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)},setTimeout(fn,delay){timers.set(++timer,{fn,delay});return timer;},clearTimeout(id){timers.delete(id);}};
- vm.runInNewContext(fs.readFileSync('page.js','utf8'),context);
+ const context={crypto:require('node:crypto'),document:{getElementById:get,createElement:element},window:{SpeechRecognition:Speech},navigator:{language:'en-US'},localStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)},setTimeout(fn,delay){timers.set(++timer,{fn,delay});return timer;},clearTimeout(id){timers.delete(id);}};
+ vm.createContext(context);
+ vm.runInContext(fs.readFileSync('list-store.js','utf8'),context);
+ vm.runInContext(fs.readFileSync('page.js','utf8'),context);
  return {get,values,sessions,open:context.window.openDayFlowPage,run(delay){for(const [id,t] of [...timers])if(t.delay===delay){timers.delete(id);t.fn();}}};
 }
 const event={preventDefault(){}};
@@ -20,7 +22,7 @@ test('legacy page text becomes items; adding and ordering persist across reload'
  const rows=app.get('listItems').children;
  rows[2].listeners.dragstart({dataTransfer:{setData(){}}});
  rows[1].listeners.drop(event);
- assert.deepEqual(JSON.parse(app.values.get('dayflow:list')),['First','Third','Second']);
+ assert.deepEqual(JSON.parse(app.values.get('dayflow:list-cache:device')).records.filter(row=>!row.deleted).sort((a,b)=>a.position-b.position).map(row=>row.text),['First','Third','Second']);
  const reload=setup(app.values);reload.open();assert.equal(reload.get('listItems').children[1].children[1].textContent,'Third');
 });
 test('speech adds one item after three seconds; double click cancels voice startup',()=>{
@@ -28,7 +30,7 @@ test('speech adds one item after three seconds; double click cancels voice start
  entry.listeners.click({detail:1});app.run(350);
  app.sessions[0].onresult({results:[[{transcript:'Buy milk'}]]});
  assert.equal(app.get('listItems').children.length,0);app.run(3000);
- assert.deepEqual(JSON.parse(app.values.get('dayflow:list')),['Buy milk']);
+ assert.deepEqual(JSON.parse(app.values.get('dayflow:list-cache:device')).records.filter(row=>!row.deleted).sort((a,b)=>a.position-b.position).map(row=>row.text),['Buy milk']);
  entry.listeners.click({detail:1});entry.listeners.dblclick();app.run(350);
  assert.equal(app.sessions.length,1);assert.equal(entry.readOnly,false);
 });
@@ -36,4 +38,19 @@ test('closing cancels a pending dictated item',()=>{
  const app=setup();app.open();app.get('listEntry').listeners.click({detail:1});app.run(350);
  app.sessions[0].onresult({results:[[{transcript:'Draft'}]]});app.get('pageClose').listeners.click();app.run(3000);
  assert.equal(app.get('listItems').children.length,0);
+});
+
+test('long pressing opens edit and delete actions; movement cancels the menu',()=>{
+ const app=setup(new Map([['dayflow:list','["Original"]']]));app.open();
+ let row=app.get('listItems').children[0];
+ row.listeners.pointerdown({target:row.children[1],clientX:0,clientY:0});
+ row.listeners.pointermove({clientX:20,clientY:0});app.run(550);
+ assert.notEqual(app.get('listItemMenu').open,true);
+ row.listeners.pointerdown({target:row.children[1],clientX:0,clientY:0});app.run(550);
+ assert.equal(app.get('listItemMenu').open,true);
+ app.get('listItemEdit').listeners.click();app.get('listEditText').value='Edited';app.get('listEditForm').listeners.submit(event);
+ assert.equal(app.get('listItems').children[0].children[1].textContent,'Edited');
+ row=app.get('listItems').children[0];row.listeners.contextmenu(event);app.get('listItemDelete').listeners.click();
+ assert.equal(app.get('listItems').children.length,0);
+ const reload=setup(app.values);assert.equal(reload.get('listItems').children.length,0);
 });

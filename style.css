@@ -247,3 +247,15 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .list-handle{padding:4px 8px;touch-action:none;user-select:none;cursor:grab}
 .list-dragging{opacity:.5}
 .page-editor .editor-header{justify-content:flex-end}
+
+.page-editor{position:fixed;padding:6px 12px 12px}
+.page-editor .editor-header{position:absolute;top:0;right:0;margin:0}
+#pageClose{padding:0;width:32px;height:32px;min-height:0;line-height:32px}
+.page-editor .list-entry{margin:0 28px 0 0}
+#listEntry{padding:8px}
+.list-label{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:default}
+.list-menu,.list-edit{border:0;border-radius:8px;padding:16px;max-width:calc(100% - 32px)}
+.list-menu[open]{display:flex;gap:8px}
+.list-menu::backdrop,.list-edit::backdrop{background:rgba(0,0,0,.25)}
+.list-edit textarea{box-sizing:border-box;width:100%;font:22px/1.25 system-ui;margin-bottom:12px}
+.list-edit form>div{display:flex;gap:8px;justify-content:flex-end}

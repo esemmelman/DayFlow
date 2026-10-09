@@ -1,16 +1,25 @@
 (()=>{
  const dialog=document.getElementById('pageDialog'),entry=document.getElementById('listEntry'),list=document.getElementById('listItems'),status=document.getElementById('pageStatus');
- const key='dayflow:list';
- let items=[],loaded=false,returnFocus=null,recognition=null,silence=null,clickTimer=null,session=0,dragged=null;
- function save(){try{localStorage.setItem(key,JSON.stringify(items));status.textContent='Saved in this browser';}catch{status.textContent='Could not save. Keep this list open.';}}
- function move(from,to){if(from===to)return;items.splice(to,0,items.splice(from,1)[0]);render();save();}
+ const menu=document.getElementById('listItemMenu'),editDialog=document.getElementById('listEditDialog'),editText=document.getElementById('listEditText');
+ let selectedId=null,pressTimer=null,pressPoint=null;
+
+ let items=[],returnFocus=null,recognition=null,silence=null,clickTimer=null,session=0,dragged=null;
+ const store=window.createDayFlowListStore(rows=>{items=rows;render();},message=>{status.textContent=message;});
+ window.connectDayFlowList=(client,user)=>{clearTimeout(clickTimer);clearTimeout(pressTimer);stop();menu.close();editDialog.close();entry.value='';selectedId=null;return store.connect(client,user);};
+ function move(from,to){if(from!==to)store.move(from,to);}
  function render(){
   list.replaceChildren();
-  items.forEach((text,index)=>{
+  items.forEach((item,index)=>{
    const row=document.createElement('li');row.className='list-item';row.draggable=true;
    const handle=document.createElement('span');handle.textContent='⠿';handle.className='list-handle';handle.setAttribute('aria-label','Drag to reorder');
-   const label=document.createElement('span');label.textContent=text;label.className='list-label';
-   row.append(handle,label);
+   const label=document.createElement('span');label.textContent=item.text;label.className='list-label';
+   row.append(handle,label);row.tabIndex=0;
+   function openMenu(){clearTimeout(pressTimer);stop();selectedId=item.id;menu.showModal();document.getElementById('listItemEdit').focus();}
+   row.addEventListener('pointerdown',event=>{if(event.target===handle)return;clearTimeout(pressTimer);pressPoint={x:event.clientX,y:event.clientY};pressTimer=setTimeout(openMenu,550);});
+   row.addEventListener('pointermove',event=>{if(pressPoint&&Math.hypot(event.clientX-pressPoint.x,event.clientY-pressPoint.y)>8)clearTimeout(pressTimer);});
+   for(const type of ['pointerup','pointercancel','pointerleave','dragstart'])row.addEventListener(type,()=>clearTimeout(pressTimer));
+   row.addEventListener('contextmenu',event=>{event.preventDefault();if(!menu.open)openMenu();});
+   row.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key==='ContextMenu'||(event.shiftKey&&event.key==='F10')){event.preventDefault();openMenu();}});
    row.addEventListener('dragstart',event=>{dragged=index;event.dataTransfer.setData('text/plain',String(index));event.dataTransfer.effectAllowed='move';});
    row.addEventListener('dragover',event=>event.preventDefault());
    row.addEventListener('drop',event=>{event.preventDefault();if(dragged!==null)move(dragged,index);dragged=null;});
@@ -29,7 +38,7 @@
   });
  }
  function stop(){session++;clearTimeout(silence);silence=null;const old=recognition;recognition=null;old?.abort();}
- function add(){const value=entry.value.trim();stop();if(!value)return;items.push(value);entry.value='';render();save();}
+ function add(){const value=entry.value.trim();stop();if(!value)return;store.add(value);entry.value='';}
  function keyboard(){clearTimeout(clickTimer);stop();entry.readOnly=false;entry.focus();status.textContent='Type an item and press Enter.';}
  function listen(){
   stop();entry.readOnly=true;
@@ -53,13 +62,17 @@
  }
  window.openDayFlowPage=opener=>{
   returnFocus=opener||document.activeElement;
-  if(!loaded){try{const saved=localStorage.getItem(key);items=saved?JSON.parse(saved):(localStorage.getItem('dayflow:page')||'').split(/\r?\n/).filter(line=>line.trim());if(!Array.isArray(items)||items.some(item=>typeof item!=='string'))throw Error();loaded=true;render();status.textContent='Click the entry box to speak; double-click to type.';}catch{status.textContent='Could not load the saved list.';}}
   entry.readOnly=true;dialog.showModal();entry.focus();
  };
  entry.addEventListener('click',event=>{clearTimeout(clickTimer);if(event.detail===1)clickTimer=setTimeout(listen,350);});
  entry.addEventListener('dblclick',keyboard);
  entry.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();add();}else if(entry.readOnly&&event.key.length===1){keyboard();}});
  document.getElementById('listForm').addEventListener('submit',event=>{event.preventDefault();clearTimeout(clickTimer);add();});
+ document.getElementById('listItemEdit').addEventListener('click',()=>{const item=items.find(row=>row.id===selectedId);menu.close();if(!item)return;editText.value=item.text;editDialog.showModal();editText.focus();});
+ document.getElementById('listItemDelete').addEventListener('click',()=>{store.remove(selectedId);menu.close();});
+ document.getElementById('listItemCancel').addEventListener('click',()=>menu.close());
+ document.getElementById('listEditCancel').addEventListener('click',()=>editDialog.close());
+ document.getElementById('listEditForm').addEventListener('submit',event=>{event.preventDefault();const text=editText.value.trim();if(text){store.edit(selectedId,text);editDialog.close();}});
  document.getElementById('pageClose').addEventListener('click',()=>dialog.close());
- dialog.addEventListener('close',()=>{clearTimeout(clickTimer);stop();returnFocus?.focus();});
+ dialog.addEventListener('close',()=>{clearTimeout(clickTimer);clearTimeout(pressTimer);stop();menu.close();editDialog.close();returnFocus?.focus();});
 })();
