@@ -1445,6 +1445,14 @@ document.addEventListener('keydown',event=>{
 
 const accountBtn=document.getElementById('accountBtn'),authDialog=document.getElementById('authDialog'),authForm=document.getElementById('authForm');
 const authEmail=document.getElementById('authEmail'),authPassword=document.getElementById('authPassword'),authError=document.getElementById('authError');
+const toggleAuthPassword=document.getElementById('toggleAuthPassword');
+function setAuthPasswordVisible(visible){
+ authPassword.type=visible?'text':'password';
+ toggleAuthPassword.setAttribute('aria-pressed',String(visible));
+ toggleAuthPassword.setAttribute('aria-label',visible?'Hide password':'Show password');
+ toggleAuthPassword.title=visible?'Hide password':'Show password';
+}
+toggleAuthPassword.onclick=()=>setAuthPasswordVisible(authPassword.type==='password');
 const signUpBtn=document.getElementById('signUpBtn'),signOutBtn=document.getElementById('signOutBtn'),changePasswordBtn=document.getElementById('changePasswordBtn');
 const changePasswordFields=document.getElementById('changePasswordFields'),newPassword=document.getElementById('newPassword'),confirmNewPassword=document.getElementById('confirmNewPassword'),saveNewPasswordBtn=document.getElementById('saveNewPasswordBtn'),cancelChangePasswordBtn=document.getElementById('cancelChangePasswordBtn');
 const downloadBackupBtn=document.getElementById('downloadBackupBtn'),restoreBackupBtn=document.getElementById('restoreBackupBtn'),restoreSnapshotBtn=document.getElementById('restoreSnapshotBtn'),restoreBackupFile=document.getElementById('restoreBackupFile');
@@ -1570,7 +1578,7 @@ saveNewPasswordBtn.onclick=async()=>{
  closeChangePasswordFields();authError.textContent='Password changed successfully.';
 };
 function openAuthDialog(){authError.textContent=supabaseClient?'':'Add your Supabase URL and publishable key to supabase-config.js first.';updateAccountUi();authDialog.hidden=false;if(!currentUser)authEmail.focus();}
-function closeAuthDialog(){authDialog.hidden=true;authError.textContent='';closeChangePasswordFields();}
+function closeAuthDialog(){authDialog.hidden=true;authError.textContent='';setAuthPasswordVisible(false);closeChangePasswordFields();}
 accountBtn.onclick=openAuthDialog;
 authDialog.querySelectorAll('[data-auth-cancel]').forEach(button=>button.onclick=closeAuthDialog);
 authForm.addEventListener('submit',async event=>{
