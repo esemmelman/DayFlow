@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m75
+// DayFlow v0.8-m76
 
-const DAYFLOW_VERSION='v0.8-m75';
+const DAYFLOW_VERSION='v0.8-m76';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -1533,7 +1533,7 @@ async function getPushSubscription(){
 async function updatePushStatus(){
  if(!currentUser)return;
  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){pushStatus.textContent='Push notifications are not supported by this browser.';enablePushBtn.disabled=true;return;}
- if(!supabaseSettings.vapidPublicKey){pushStatus.textContent='Push setup is pending: add the VAPID public key to supabase-config.js.';enablePushBtn.disabled=true;return;}
+ if(!supabaseSettings.vapidPublicKey){pushStatus.textContent='Push notifications are disabled. Email reminders are available.';enablePushBtn.disabled=true;return;}
  try{
   const subscription=await getPushSubscription();
   pushStatus.textContent=subscription?'Push notifications are enabled on this device.':'Push notifications are not enabled on this device.';
