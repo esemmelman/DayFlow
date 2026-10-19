@@ -32,3 +32,7 @@ At the first sign-in, existing `df6` local tasks are uploaded when the account h
 ## List sync
 
 The List uses `public.list_items`, with account ownership enforced by RLS. Run the latest `supabase-schema.sql` for a new project. Signed-in devices sync added, edited, deleted, and reordered items through Realtime and refresh on focus or reconnect. Device-only items import once per account. Pending changes persist locally for retry after an offline session; concurrent edits to the same item use the last completed write. Deletions remain as tombstones to prevent stale caches from restoring items.
+
+## Consolidated backend (October 19, 2026)
+
+DayFlow now uses the bnaimitzvah project (fgomaujsdblpzxhnnqrg). Refresh open tabs and sign in again after the switch. A matching existing account uses its existing bnaimitzvah password. The old DayFlow project's tables are read-only for browser clients to prevent split writes. Email reminders use the destination send-reminders worker; push delivery is disabled and no VAPID keys are required. Configure RESEND_API_KEY, REMINDER_EMAIL_FROM and CRON_SECRET as server-side secrets. The scheduler must authenticate with CRON_SECRET; an authenticated POST with {"dry_run":true} verifies configuration and database access without sending messages.
