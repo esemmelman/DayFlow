@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m78
+// DayFlow v0.8-m79
 
-const DAYFLOW_VERSION='v0.8-m78';
+const DAYFLOW_VERSION='v0.8-m79';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -303,7 +303,7 @@ newTask.addEventListener('keydown',event=>{
 const androidNav=document.getElementById('androidNav');
 const androidAdd=document.getElementById('androidAdd');
 const androidCal=document.getElementById('androidCal');
-const androidList=document.getElementById('androidList');
+const androidLog=document.getElementById('androidLog');
 const androidRows=document.createElement('button');
 androidRows.id='androidRows';androidRows.type='button';androidRows.textContent='Rw';
 androidRows.setAttribute('aria-pressed','false');
@@ -519,7 +519,9 @@ calendarLayoutScroll.addEventListener('scroll',()=>{calendarLayoutWeekdaysScroll
 
 rowsBtn.onclick=()=>setRowsOpen(rowsPanel.hidden);
 androidRows.onclick=()=>setRowsOpen(rowsPanel.hidden);
-androidList.onclick=()=>{closeAndroidPanel();window.openDayFlowPage(androidList);};
+function openLog(){window.location.assign('https://esemmelman.github.io/log/');}
+androidLog.onclick=openLog;
+document.getElementById('logBtn').onclick=openLog;
 function renderCalendarLayoutFromFirst(){
  renderCalendarLayout();
  requestAnimationFrame(()=>{
@@ -784,7 +786,8 @@ androidAbout.onclick=()=>{
  const about=document.createElement('div');
  about.className='android-about';
  about.textContent=`DayFlow ${DAYFLOW_VERSION}`;
- more.append(account,add,androidRows,about);androidPanel.replaceChildren(more);
+ const list=document.createElement('button');list.type='button';list.textContent='List';list.onclick=()=>{closeAndroidPanel();window.openDayFlowPage(androidAbout);};
+ more.append(account,add,list,androidRows,about);androidPanel.replaceChildren(more);
  requestAnimationFrame(()=>androidPanel.scrollIntoView({block:'start'}));
 };
 prev.onclick=()=>{m--;if(m<0){m=11;y--;}drawCal();}
