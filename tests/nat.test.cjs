@@ -12,7 +12,8 @@ function setup(){
  const context=vm.createContext({console,Date,crypto:require('node:crypto').webcrypto,
   document:{getElementById:element,addEventListener(){},activeElement:element('natBtn')},
   window:{SpeechRecognition:Recognition},tasks:[],save(){context.saves++;},saves:0,
-  renderEverything(){},formatTime:value=>value});
+  renderEverything(){},formatTime:value=>value,
+  closeAndroidPanel(){},showAndroidButtons(){},openScheduleDate(date){context.shownDate=date;}});
  vm.runInContext(fs.readFileSync('vendor/chrono-en.min.js','utf8'),context);
  vm.runInContext(fs.readFileSync('nat.js','utf8'),context);
  return {context,element,Recognition,parse:text=>context.parseNaturalTask(text,new Date(2026,8,9,10))};
@@ -216,4 +217,42 @@ test('cancel ignores late speech; denied and unsupported voice allow typing',()=
  element('natText').value='Buy bread';
  element('natForm').onsubmit({preventDefault(){}});
  assert.equal(context.tasks[0].title,'Buy bread');
+});
+
+test('show me resolves requested days and rejects unsupported commands',()=>{
+ const {context}=setup();
+ const now=new Date(2026,9,22,10);
+ for(const [text,date] of [
+  ['show me my events for sunday','2026-10-25'],
+  ['SHOW ME appointments on tomorrow.','2026-10-23'],
+  ['show me today','2026-10-22'],
+  ['show me my schedule for October 30','2026-10-30']
+ ])assert.equal(context.parseShowCommand(text,now).date,date);
+ assert.equal(context.parseShowCommand('show me Sunday',new Date(2026,9,25,15)).date,'2026-10-25');
+ assert.equal(context.parseShowCommand('show me next Sunday',new Date(2026,9,25,15)).date,'2026-11-1');
+ assert.equal(context.parseShowCommand('Call Sam tomorrow',now),null);
+ for(const text of ['show me','show me my events','show me delete events Sunday','show me events Sunday to Tuesday'])
+  assert.throws(()=>context.parseShowCommand(text,now),/Please request one day/);
+});
+
+test('show me executes after speech ends without saving; typed commands use Done',()=>{
+ const {context,element,Recognition}=setup();
+ context.openNat();
+ const recognition=Recognition.latest;
+ recognition.onresult({results:[[{transcript:'show me my events for Sunday'}]]});
+ assert.equal(context.shownDate,undefined);
+ assert.equal(element('natPreviewTitle').textContent,'Show events');
+ recognition.onend();
+ assert.ok(context.shownDate);
+ assert.equal(new Date(...context.shownDate.split('-').map((n,i)=>Number(n)-(i===1?1:0))).getDay(),0);
+ assert.equal(element('natDialog').hidden,true);
+ assert.equal(context.saves,0);
+ assert.equal(context.tasks.length,0);
+ context.openNat();element('natText').value='show me tomorrow';
+ element('natForm').onsubmit({preventDefault(){}});
+ assert.equal(context.shownDate,context.parseShowCommand('show me tomorrow').date);
+ context.openNat();element('natText').value='show me delete everything';
+ element('natForm').onsubmit({preventDefault(){}});
+ assert.equal(element('natDialog').hidden,false);
+ assert.equal(context.tasks.length,0);assert.equal(context.saves,0);
 });

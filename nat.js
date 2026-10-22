@@ -37,6 +37,30 @@ function parseNaturalTask(transcript,now=new Date()){
   reminderEnabled:Boolean(time),reminderMinutes:20,reminderEmail:true,reminderPush:false};
 }
 
+function parseShowCommand(transcript,now=new Date()){
+ if(!/^show\s+me\b/i.test(transcript.trim()))return null;
+ const request=transcript.trim().replace(/^show\s+me\b[\s,:]*/i,'')
+  .replace(/^(?:(?:all\s+)?(?:my\s+)?(?:events|appointments|tasks|schedule|calendar)\b\s*)?(?:(?:for|on)\s+)?/i,'')
+  .replace(/[.!?]+$/,'').trim();
+ const results=chrono.parse(request,now,{forwardDate:true});
+ const result=results[0];
+ if(results.length!==1||!result||result.end||result.start.isCertain('hour')||
+  request.slice(0,result.index).trim()||request.slice(result.index+result.text.length).trim()){
+  throw new Error('Try “show me my events for Sunday” or “show me tomorrow”. Please request one day.');
+ }
+ const date=result.start.date();
+ date.setHours(0,0,0,0);
+ // A weekday alone means its next occurrence, including today.
+ if(/^(?:next\s+)?(?:sun|mon|tues|wednes|thurs|fri|satur)day$/i.test(request)){
+  const today=new Date(now);today.setHours(0,0,0,0);
+  const offset=(date.getDay()-today.getDay()+7)%7;
+  date.setTime(today.getTime());date.setDate(date.getDate()+offset);
+  if(!offset&&/^next\s/i.test(request))date.setDate(date.getDate()+7);
+ }
+ return {date:`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`,
+  label:date.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric',year:'numeric'})};
+}
+
 const natDialog=document.getElementById('natDialog');
 const natText=document.getElementById('natText');
 const natStatus=document.getElementById('natStatus');
@@ -50,6 +74,8 @@ function updateNatPreview(){
  title.textContent='';schedule.textContent='';preview.hidden=true;
  if(!natText.value.trim())return;
  try{
+  const command=parseShowCommand(natText.value);
+  if(command){title.textContent='Show events';schedule.textContent=command.label;schedule.hidden=false;preview.hidden=false;return;}
   const task=parseNaturalTask(natText.value);
   title.textContent=task.title;
   if(task.date){
@@ -89,6 +115,15 @@ function closeNat(){
 function addNaturalTask(){
  if(natDialog.hidden)return;
  try{
+  const command=parseShowCommand(natText.value);
+  if(command){
+   closeNat();
+   closeAndroidPanel();showAndroidButtons();
+   openScheduleDate(command.date);
+   natStatus.textContent=`Showing events for ${command.label}.`;
+   natText.value='';
+   return;
+  }
   const task=parseNaturalTask(natText.value);
   stopNatListening();
   tasks.push({id:crypto.randomUUID(),...task});
@@ -113,7 +148,7 @@ function startNatListening(){
   recognition.interimResults=true;
   natListen.disabled=true;
   natListen.textContent='Listening...';
-  natStatus.textContent='Listening… Say one task, including its date and time if needed.';
+  natStatus.textContent='Listening… Say a task, or “show me my events for Sunday”.';
   recognition.onresult=event=>{
    if(natRecognition!==recognition)return;
    const transcript=Array.from(event.results,result=>result[0].transcript).join(' ').replace(/\bAubrey\b/gi,'Aubree');
@@ -132,6 +167,7 @@ function startNatListening(){
    natRecognition=null;natListen.disabled=false;natListen.textContent='Speak again';
    natStatus.textContent='Listening ended. Review the task and choose Done to save.';
    updateNatPreview();
+   if(/^show\s+me\b/i.test(natText.value.trim()))addNaturalTask();
   };
   recognition.start();
  }catch(error){stopNatListening();showNatError('Could not start the microphone. Try again or type below.');}
