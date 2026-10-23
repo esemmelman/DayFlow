@@ -261,3 +261,9 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .list-menu::backdrop,.list-edit::backdrop{background:rgba(0,0,0,.25)}
 .list-edit textarea{box-sizing:border-box;width:100%;font:22px/1.25 system-ui;margin-bottom:12px}
 .list-edit form>div{display:flex;gap:8px;justify-content:flex-end}
+
+/* Simple List runs at its own origin, sharing its existing account and notes. */
+.page-editor{width:calc(100% - 24px);height:95vh;height:95dvh;padding:8px 12px 12px}
+.page-editor .editor-header{position:static;min-height:32px;margin:0;justify-content:flex-end}
+#simplistFrame{display:block;width:100%;flex:1;min-height:0;border:0}
+.simplist-fallback{margin:0;font-size:13px;text-align:right}

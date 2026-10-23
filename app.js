@@ -1598,7 +1598,6 @@ signOutBtn.onclick=async()=>{await supabaseClient?.auth.signOut();closeAuthDialo
 async function applySession(session){
  const nextUser=session?.user||null;if(nextUser?.id===currentUser?.id)return;
  currentUser=nextUser;remoteTaskIds=new Set();
- window.connectDayFlowList?.(supabaseClient,currentUser);
  if(taskChannel){await supabaseClient.removeChannel(taskChannel);taskChannel=null;}
  updateAccountUi();
  if(!currentUser){tasks=[];renderEverything();setSyncStatus(supabaseClient?'Not signed in':'Local only');return;}
