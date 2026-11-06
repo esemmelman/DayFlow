@@ -621,6 +621,17 @@ function renderSearchResults(searchInput,container,onSelect){
  container.append(results);
 }
 
+function updateAndroidSearchToolbarHeight(){
+ const height=document.querySelector('.toolbar').getBoundingClientRect().height;
+ document.body.style.setProperty('--android-search-toolbar-height',`${height}px`);
+}
+
+// Keep results below the actual toolbar, including font and orientation changes.
+const androidSearchToolbarObserver=new ResizeObserver(()=>{
+ if(document.body.classList.contains('android-searching'))updateAndroidSearchToolbarHeight();
+});
+androidSearchToolbarObserver.observe(document.querySelector('.toolbar'));
+
 function renderAndroidSearchResults(){
  androidPanel.hidden=false;
  androidPanel.classList.add('android-search-results-panel');
@@ -643,6 +654,7 @@ androidFind.onclick=()=>{
  document.body.classList.add('android-searching');
  androidNav.hidden=true;
  androidSearchForm.hidden=false;
+ updateAndroidSearchToolbarHeight();
  androidSearch.value='';
  renderAndroidSearchResults();
  androidSearch.focus({preventScroll:true});
