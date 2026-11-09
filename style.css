@@ -267,3 +267,5 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .page-editor .editor-header{position:static;min-height:32px;margin:0;justify-content:flex-end}
 #simplistFrame{display:block;width:100%;flex:1;min-height:0;border:0}
 .simplist-fallback{margin:0;font-size:13px;text-align:right}
+
+.slot:focus-visible { outline: 2px solid #2f80ed; outline-offset: -2px; }

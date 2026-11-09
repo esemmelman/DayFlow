@@ -829,6 +829,7 @@ for(let h=6;h<=22;h++){
  let slot=document.createElement('div');
  slot.className='slot';
  slot.dataset.hour=String(h);
+ enableSlotPaste(slot);
  let addButton=addSlotButton(slot);
  r.append(time,addButton,slot);
  timeline.append(r);
@@ -943,6 +944,7 @@ function renderMobileAgenda(){
    slot.className='slot';
    slot.dataset.date=dateKey;
    slot.dataset.hour=String(hour);
+   enableSlotPaste(slot);
    const appointments=tasks.filter(task=>task.date===dateKey&&task.time!=null&&taskOccupiesHour(task,hour)).sort(compareTaskStartTimes);
    if(appointments.length){
     const items=document.createElement('div');
@@ -1209,6 +1211,25 @@ items.appendChild(createTaskElement(task,'div',true));
 
 function addScheduled(time){
  openAppointmentEditor(null,{date:key(sel),time,allDay:time===null});
+}
+
+function enableSlotPaste(slot){
+ slot.tabIndex=0;
+ slot.setAttribute('aria-label','Time slot. Click here and paste to add an appointment.');
+ slot.addEventListener('click',event=>{
+  if(!event.target.closest('.task'))slot.focus();
+ });
+ slot.addEventListener('paste',event=>{
+  if(event.target!==slot)return;
+  const text=event.clipboardData?.getData('text/plain').trim();
+  if(!text)return;
+  event.preventDefault();
+  const [title,...notes]=text.split(/\r?\n/);
+  tasks.push({id:crypto.randomUUID(),title:title.trim(),notes:notes.join('\n'),
+   date:slot.dataset.date||key(sel),time:Number(slot.dataset.hour),endTime:null,color:'#2f80ed'});
+  save();
+  renderEverything();
+ });
 }
 
 function addSlotButton(slot){

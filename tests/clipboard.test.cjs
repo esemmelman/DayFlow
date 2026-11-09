@@ -1,0 +1,22 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const source=fs.readFileSync('app.js','utf8');
+for(const date of [undefined,'2026-12-25'])test(`paste into ${date||'selected day'} preserves title, notes and hour`,()=>{
+ const context={tasks:[],crypto:require('node:crypto'),sel:{},key:()=> '2026-11-10',save(){context.saved=true;},renderEverything(){context.rendered=true;}};
+ vm.createContext(context);
+ vm.runInContext(source.slice(source.indexOf('function enableSlotPaste('),source.indexOf('function addSlotButton(')),context);
+ const events={};const slot={dataset:{hour:'14',...(date?{date}:{})},setAttribute(){},addEventListener(name,fn){events[name]=fn;}};
+ context.enableSlotPaste(slot);
+ let prevented=false;
+ events.paste({target:slot,clipboardData:{getData:()=> 'Call dentist\nAsk about appointment'},preventDefault(){prevented=true;}});
+ assert.equal(context.tasks.length,1);
+ assert.equal(context.tasks[0].title,'Call dentist');
+ assert.equal(context.tasks[0].notes,'Ask about appointment');
+ assert.equal(context.tasks[0].date,date||'2026-11-10');
+ assert.equal(context.tasks[0].time,14);
+ assert.ok(prevented&&context.saved&&context.rendered);
+ events.paste({target:slot,clipboardData:{getData:()=> '  '}});
+ assert.equal(context.tasks.length,1);
+});
