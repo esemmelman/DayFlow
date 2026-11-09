@@ -54,6 +54,7 @@ test('clipboard appointments and legacy numeric times survive sync and reload',a
  deduplicateSeededTimeSlots(){},setSyncStatus(){},localStorage:{setItem(){}},console,
  supabaseClient:{from(){return {async upsert(rows){for(const row of rows)assert.match(row.start_time,/^\d{2}:\d{2}$/);stored=JSON.parse(JSON.stringify(rows));return {};}};}}};
  vm.createContext(context);
+ vm.runInContext(source.slice(source.indexOf('function minutesToTime('),source.indexOf('function moveTaskToTime(')),context);
  vm.runInContext(source.slice(source.indexOf('function toTimeValue('),source.indexOf('function timeHour(')),context);
  vm.runInContext(source.slice(source.indexOf('function taskToRow('),source.indexOf('function renderEverything(')),context);
  await context.syncTasks();

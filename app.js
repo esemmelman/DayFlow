@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m89
+// DayFlow v0.8-m90
 
-const DAYFLOW_VERSION='v0.8-m89';
+const DAYFLOW_VERSION='v0.8-m90';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -821,12 +821,12 @@ function moveToToday(){
 }
 
 todayBtn.onclick=moveToToday;
-for(let h=6;h<=22;h++){
+for(let h=6;h<=22.5;h+=0.5){
  let r=document.createElement('div');
  r.className='hour';
  let time=document.createElement('div');
  time.className='time';
- time.textContent=`${((h%12)||12)}:00 ${h<12?'AM':'PM'}`;
+ time.textContent=formatTime(h);
  let slot=document.createElement('div');
  slot.className='slot';
  slot.dataset.hour=String(h);
@@ -928,13 +928,13 @@ function renderMobileAgenda(){
   day.append(allDayZone);
 
   const timeline=document.createElement('div');
-  for(let hour=6;hour<=22;hour++){
+  for(let hour=6;hour<=22.5;hour+=0.5){
    const row=document.createElement('div');
    row.className='hour';
    row.dataset.date=dateKey;
    const time=document.createElement('div');
    time.className='time';
-   time.textContent=`${hour%12||12}:00 ${hour<12?'AM':'PM'}`;
+   time.textContent=formatTime(hour);
    const add=document.createElement('button');
    add.type='button';
    add.className='add-slot';
@@ -991,9 +991,9 @@ function timeToMinutes(time){
 function taskOccupiesHour(task,hour){
  const start=timeToMinutes(task.time);
  const end=task.endTime?timeToMinutes(task.endTime):start+60;
- if(end<=start)return hour===Math.floor(start/60);
+ if(end<=start)return hour===Math.floor(start/30)/2;
  const slotStart=hour*60;
- return slotStart<end&&slotStart+60>start;
+ return slotStart<end&&slotStart+30>start;
 }
 
 function minutesToTime(minutes){
@@ -1190,7 +1190,7 @@ document.addEventListener('contextmenu',event=>{
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
  tasks.filter(x=>x.date===key(sel)&&x.time!=null).sort(compareTaskStartTimes).forEach(task=>{
-  for(let hour=6;hour<=22;hour++){
+  for(let hour=6;hour<=22.5;hour+=0.5){
    if(!taskOccupiesHour(task,hour))continue;
    const slot=document.querySelector(`.day-panel .slot[data-hour="${hour}"]`);
    if(slot){
@@ -1353,7 +1353,7 @@ function toDateKey(dateValue){
 
 function toTimeValue(time){
  if(time===null||time===undefined)return '';
- if(typeof time==='number')return `${String(time).padStart(2,'0')}:00`;
+ if(typeof time==='number')return minutesToTime(Math.round(time*60));
  return time;
 }
 
@@ -1389,7 +1389,7 @@ function updateMinutesUntil(){
 
 function updateCurrentHourLabels(now=new Date()){
  const todayKey=key(now);
- const currentHour=now.getHours();
+ const currentHour=now.getHours()+(now.getMinutes()>=30?0.5:0);
  document.querySelectorAll('.day-panel .hour').forEach(row=>{
   const hour=Number(row.querySelector('.slot')?.dataset.hour);
   row.querySelector('.time')?.classList.toggle('current-hour',key(sel)===todayKey&&hour===currentHour);
