@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m90
+// DayFlow v0.8-m91
 
-const DAYFLOW_VERSION='v0.8-m90';
+const DAYFLOW_VERSION='v0.8-m91';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -1222,7 +1222,7 @@ function enableSlotPaste(slot){
   if(!text)return false;
   const [title,...notes]=text.split(/\r?\n/);
   tasks.push({id:crypto.randomUUID(),title:title.trim(),notes:notes.join('\n'),
-   date:slot.dataset.date||key(sel),time:toTimeValue(Number(slot.dataset.hour)),endTime:null,color:'#2f80ed'});
+   date:slot.dataset.date||key(sel),time:toTimeValue(Number(slot.dataset.hour)),endTime:toTimeValue(Number(slot.dataset.hour)+0.5),color:'#2f80ed'});
   save();
   renderEverything();
   return true;
