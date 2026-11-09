@@ -7,6 +7,7 @@
   // Keep the embedded app alive between openings to preserve unsaved edits.
   if(!frame.getAttribute('src'))frame.setAttribute('src',frame.dataset.src);
   if(!dialog.open)dialog.showModal();
+  window.retryDayFlowListTransfers?.();
   document.getElementById('pageClose').focus();
  };
  document.getElementById('pageClose').addEventListener('click',()=>dialog.close());

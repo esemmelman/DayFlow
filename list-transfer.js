@@ -10,6 +10,7 @@
   if(!frame.getAttribute('src')){frame.setAttribute('src',frame.dataset.src);return;}
   for(const copy of Object.values(state.pending))frame.contentWindow?.postMessage({type:'dayflow:remove-copied-item',copy},origin);
  };
+ window.retryDayFlowListTransfers=flush;
  window.getDayFlowListCopy=text=>state.copied?.text.trim()===text.trim()?{...state.copied}:undefined;
  window.completeDayFlowListPaste=copy=>{
   if(!copy?.token||state.done[copy.token])return;
