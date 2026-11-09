@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const source=fs.readFileSync('app.js','utf8');
 for(const date of [undefined,'2026-12-25'])test(`paste into ${date||'selected day'} preserves title, notes and hour`,()=>{
- const context={tasks:[],crypto:require('node:crypto'),sel:{},key:()=> '2026-11-10',toTimeValue:h=>`${String(Math.floor(h)).padStart(2,'0')}:${h%1?'30':'00'}`,save(){context.saved=true;},renderEverything(){context.rendered=true;}};
+ const context={window:{},tasks:[],crypto:require('node:crypto'),sel:{},key:()=> '2026-11-10',toTimeValue:h=>`${String(Math.floor(h)).padStart(2,'0')}:${h%1?'30':'00'}`,save(){context.saved=true;},renderEverything(){context.rendered=true;}};
  vm.createContext(context);
  vm.runInContext(source.slice(source.indexOf('function enableSlotPaste('),source.indexOf('function addSlotButton(')),context);
  const events={};const slot={dataset:{hour:'14',...(date?{date}:{})},setAttribute(){},addEventListener(name,fn){events[name]=fn;}};
@@ -25,7 +25,7 @@ for(const date of [undefined,'2026-12-25'])test(`paste into ${date||'selected da
 test('long press offers clipboard paste; scrolling cancels the hold',async()=>{
  let timer,cleared=false;
  const elements=[];
- const context={tasks:[],crypto:require('node:crypto'),sel:{},key:()=> '2026-11-10',toTimeValue:h=>`${String(Math.floor(h)).padStart(2,'0')}:${h%1?'30':'00'}`,save(){},renderEverything(){},formatTime:()=> '2:00 PM',
+ const context={window:{},tasks:[],crypto:require('node:crypto'),sel:{},key:()=> '2026-11-10',toTimeValue:h=>`${String(Math.floor(h)).padStart(2,'0')}:${h%1?'30':'00'}`,save(){},renderEverything(){},formatTime:()=> '2:00 PM',
   setTimeout(fn){timer=fn;return 1;},clearTimeout(){cleared=true;timer=null;},
   navigator:{clipboard:{async readText(){return 'Call dentist\nBring records';}}},
   document:{body:{append(){}},createElement(tag){const element={tag,listeners:{},setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn;},append(){},showModal(){this.open=true;},close(){this.open=false;this.listeners.close();},remove(){},focus(){}};elements.push(element);return element;}}};
@@ -64,4 +64,18 @@ test('clipboard appointments and legacy numeric times survive sync and reload',a
  const reloaded=stored.map(row=>context.rowToTask(row));
  assert.equal(reloaded[0].time,'14:00');assert.equal(reloaded[0].notes,'Bring records');
  assert.equal(reloaded[1].time,'12:00');
+});
+
+for(const fails of [false,true])test(`list removal waits for calendar sync ${fails?'and is skipped on failure':'success'}`,async()=>{
+ const removed=[];
+ const copy={token:'copy-1',id:'list-1'};
+ const context={window:{completeDayFlowListPaste:value=>removed.push(value)},currentUser:{id:'owner'},tasks:[{id:'pasted',title:'Dentist',date:'2026-12-25',time:'14:00',endTime:'14:30',listCopy:copy}],
+ syncInProgress:false,syncAgain:false,remoteTaskIds:new Set(),legacyTasks:[],deduplicateSeededTimeSlots(){},setSyncStatus(){},localStorage:{setItem(){}},console:{error(){}},
+ supabaseClient:{from(){return {async upsert(){assert.equal(removed.length,0);return {error:fails?Error('offline'):null};}};}}};
+ vm.createContext(context);
+ vm.runInContext(source.slice(source.indexOf('function toTimeValue('),source.indexOf('function timeHour(')),context);
+ vm.runInContext(source.slice(source.indexOf('function taskToRow('),source.indexOf('function renderEverything(')),context);
+ await context.syncTasks();
+ assert.equal(removed.length,fails?0:1);
+ if(!fails)assert.equal(removed[0].id,'list-1');
 });

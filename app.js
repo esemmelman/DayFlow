@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m92
+// DayFlow v0.8-m93
 
-const DAYFLOW_VERSION='v0.8-m92';
+const DAYFLOW_VERSION='v0.8-m93';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -53,7 +53,7 @@ function save(){
  createTaskSnapshot('change');
  deduplicateSeededTimeSlots();
  localStorage.setItem(currentUser?`df6:${currentUser.id}`:'df6',JSON.stringify(tasks));
- if(!currentUser)return;
+ if(!currentUser){for(const task of tasks)if(task.listCopy)window.completeDayFlowListPaste?.(task.listCopy);return;}
  clearTimeout(syncTimer);setSyncStatus('Saving…','pending');syncTimer=setTimeout(syncTasks,250);
 }
 function taskToRow(task){return {id:String(task.id),user_id:currentUser.id,title:task.title,date:task.date||null,start_time:task.time==null?null:toTimeValue(task.time),end_time:task.endTime==null?null:toTimeValue(task.endTime),notes:task.notes||'',color:task.color||'#2f80ed',reminder_enabled:Boolean(task.reminderEnabled),reminder_minutes:Number(task.reminderMinutes)||45,reminder_email:task.reminderEmail!==false,reminder_push:Boolean(task.reminderPush),timezone:task.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'};}
@@ -79,6 +79,7 @@ async function syncTasks(){
    legacyTasks=[];
    localStorage.removeItem('df6');
   }
+  for(const task of tasks)if(task.listCopy&&rows.some(row=>row.id===String(task.id)))window.completeDayFlowListPaste?.(task.listCopy);
   setSyncStatus('Synced','ok');
  }catch(error){console.error('DayFlow sync failed',error);setSyncStatus('Sync failed','error');}
  finally{syncInProgress=false;if(syncAgain){syncAgain=false;syncTasks();}}
@@ -1221,7 +1222,7 @@ function enableSlotPaste(slot){
   const text=value.trim();
   if(!text)return false;
   const [title,...notes]=text.split(/\r?\n/);
-  tasks.push({id:crypto.randomUUID(),title:title.trim(),notes:notes.join('\n'),
+  tasks.push({id:crypto.randomUUID(),title:title.trim(),notes:notes.join('\n'),listCopy:window.getDayFlowListCopy?.(text),
    date:slot.dataset.date||key(sel),time:toTimeValue(Number(slot.dataset.hour)),endTime:toTimeValue(Number(slot.dataset.hour)+0.5),color:'#2f80ed'});
   save();
   renderEverything();
