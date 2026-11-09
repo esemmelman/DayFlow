@@ -269,3 +269,8 @@ aside,section{border-bottom:0;border-right:1px solid #ddd;overflow:auto}
 .simplist-fallback{margin:0;font-size:13px;text-align:right}
 
 .slot:focus-visible { outline: 2px solid #2f80ed; outline-offset: -2px; }
+
+.slot-paste-menu { border: 0; border-radius: 12px; max-width: calc(100% - 32px); padding: 20px; }
+.slot-paste-menu::backdrop { background: rgba(0,0,0,.3); }
+.slot-paste-menu button { padding: 12px; margin-right: 8px; }
+.slot-paste-menu textarea { box-sizing: border-box; width: 100%; min-height: 80px; font: inherit; }

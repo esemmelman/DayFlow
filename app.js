@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m85
+// DayFlow v0.8-m86
 
-const DAYFLOW_VERSION='v0.8-m85';
+const DAYFLOW_VERSION='v0.8-m86';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -1215,20 +1215,68 @@ function addScheduled(time){
 
 function enableSlotPaste(slot){
  slot.tabIndex=0;
- slot.setAttribute('aria-label','Time slot. Click here and paste to add an appointment.');
- slot.addEventListener('click',event=>{
-  if(!event.target.closest('.task'))slot.focus();
- });
- slot.addEventListener('paste',event=>{
-  if(event.target!==slot)return;
-  const text=event.clipboardData?.getData('text/plain').trim();
-  if(!text)return;
-  event.preventDefault();
+ slot.setAttribute('aria-label','Time slot. Long press to paste a copied item.');
+ const addText=value=>{
+  const text=value.trim();
+  if(!text)return false;
   const [title,...notes]=text.split(/\r?\n/);
   tasks.push({id:crypto.randomUUID(),title:title.trim(),notes:notes.join('\n'),
    date:slot.dataset.date||key(sel),time:Number(slot.dataset.hour),endTime:null,color:'#2f80ed'});
   save();
   renderEverything();
+  return true;
+ };
+ let timer=null,startX=0,startY=0,menu=null;
+ const cancelHold=()=>{clearTimeout(timer);timer=null;};
+ const showPaste=()=>{
+  cancelHold();
+  if(menu)return;
+  menu=document.createElement('dialog');
+  menu.className='slot-paste-menu';
+  const label=document.createElement('p');
+  label.textContent=`Add copied item at ${formatTime(Number(slot.dataset.hour))} on ${slot.dataset.date||key(sel)}`;
+  const paste=document.createElement('button');
+  paste.type='button';paste.textContent='Paste copied item';
+  const fallback=document.createElement('textarea');
+  fallback.hidden=true;fallback.placeholder='Long press here and choose Paste';
+  fallback.setAttribute('aria-label','Paste copied item here');
+  const status=document.createElement('p');status.setAttribute('role','status');
+  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';
+  const finish=text=>{if(addText(text))menu.close();else status.textContent='The clipboard is empty.';};
+  paste.onclick=async()=>{
+   try{finish(await navigator.clipboard.readText());}
+   catch{status.textContent='Long press the field below and choose Paste.';fallback.hidden=false;fallback.focus();}
+  };
+  fallback.addEventListener('paste',event=>{
+   const text=event.clipboardData?.getData('text/plain');
+   if(text){event.preventDefault();finish(text);}
+  });
+  cancel.onclick=()=>menu.close();
+  menu.addEventListener('close',()=>{menu.remove();menu=null;});
+  menu.append(label,paste,cancel,status,fallback);
+  document.body.append(menu);menu.showModal();
+ };
+ slot.addEventListener('pointerdown',event=>{
+  if(event.target.closest('.task')||event.button!==0)return;
+  cancelHold();startX=event.clientX;startY=event.clientY;
+  timer=setTimeout(showPaste,550);
+ });
+ slot.addEventListener('pointermove',event=>{
+  if(Math.hypot(event.clientX-startX,event.clientY-startY)>10)cancelHold();
+ });
+ for(const name of ['pointerup','pointercancel','pointerleave'])slot.addEventListener(name,cancelHold);
+ slot.addEventListener('contextmenu',event=>{
+  if(event.target.closest('.task'))return;
+  event.preventDefault();showPaste();
+ });
+ slot.addEventListener('click',event=>{
+  if(!event.target.closest('.task'))slot.focus();
+ });
+ slot.addEventListener('paste',event=>{
+  if(event.target!==slot)return;
+  const text=event.clipboardData?.getData('text/plain');
+  if(!text?.trim())return;
+  event.preventDefault();addText(text);
  });
 }
 
