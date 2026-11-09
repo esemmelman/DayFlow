@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m86
+// DayFlow v0.8-m87
 
-const DAYFLOW_VERSION='v0.8-m86';
+const DAYFLOW_VERSION='v0.8-m87';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -56,7 +56,7 @@ function save(){
  if(!currentUser)return;
  clearTimeout(syncTimer);setSyncStatus('Saving…','pending');syncTimer=setTimeout(syncTasks,250);
 }
-function taskToRow(task){return {id:String(task.id),user_id:currentUser.id,title:task.title,date:task.date||null,start_time:task.time??null,end_time:task.endTime??null,notes:task.notes||'',color:task.color||'#2f80ed',reminder_enabled:Boolean(task.reminderEnabled),reminder_minutes:Number(task.reminderMinutes)||45,reminder_email:task.reminderEmail!==false,reminder_push:Boolean(task.reminderPush),timezone:task.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'};}
+function taskToRow(task){return {id:String(task.id),user_id:currentUser.id,title:task.title,date:task.date||null,start_time:task.time==null?null:toTimeValue(task.time),end_time:task.endTime==null?null:toTimeValue(task.endTime),notes:task.notes||'',color:task.color||'#2f80ed',reminder_enabled:Boolean(task.reminderEnabled),reminder_minutes:Number(task.reminderMinutes)||45,reminder_email:task.reminderEmail!==false,reminder_push:Boolean(task.reminderPush),timezone:task.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'};}
 function rowToTask(row){
  const date=row.date?row.date.split('-').map(Number).join('-'):null;
  return {id:row.id,title:row.title,date,time:row.start_time?.slice(0,5)??null,endTime:row.end_time?.slice(0,5)??null,notes:row.notes||'',color:row.color||'#2f80ed',reminderEnabled:Boolean(row.reminder_enabled),reminderMinutes:Number(row.reminder_minutes)||45,reminderEmail:row.reminder_email!==false,reminderPush:Boolean(row.reminder_push),timezone:row.timezone||'UTC'};
@@ -1221,7 +1221,7 @@ function enableSlotPaste(slot){
   if(!text)return false;
   const [title,...notes]=text.split(/\r?\n/);
   tasks.push({id:crypto.randomUUID(),title:title.trim(),notes:notes.join('\n'),
-   date:slot.dataset.date||key(sel),time:Number(slot.dataset.hour),endTime:null,color:'#2f80ed'});
+   date:slot.dataset.date||key(sel),time:toTimeValue(Number(slot.dataset.hour)),endTime:null,color:'#2f80ed'});
   save();
   renderEverything();
   return true;
