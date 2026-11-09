@@ -30,3 +30,12 @@ test('dragging into a half-hour preserves appointment duration',()=>{
  assert.equal(task.time,'06:30');assert.equal(task.endTime,'07:15');
  assert.equal(task.date,'2026-11-10');
 });
+
+test('plus-button editor defaults to thirty minutes for full and half-hour starts',()=>{
+ const app=setup();
+ vm.runInContext(source.slice(source.indexOf('function defaultEndTime('),source.indexOf('function updateEditorTimeFields(')),app);
+ assert.equal(app.defaultEndTime(6),'06:30');
+ assert.equal(app.defaultEndTime(6.5),'07:00');
+ assert.equal(app.defaultEndTime('11:45'),'12:15');
+ assert.equal(app.defaultEndTime(null),'');
+});

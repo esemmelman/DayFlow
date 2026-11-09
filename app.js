@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m91
+// DayFlow v0.8-m92
 
-const DAYFLOW_VERSION='v0.8-m91';
+const DAYFLOW_VERSION='v0.8-m92';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -1412,7 +1412,7 @@ function defaultEndTime(start){
  const value=toTimeValue(start);
  if(!value)return '';
  const [hour,minute]=value.split(':').map(Number);
- return `${String(Math.min(23,hour+1)).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+ return minutesToTime(hour*60+minute+30);
 }
 
 function updateEditorTimeFields(){
