@@ -822,7 +822,7 @@ function moveToToday(){
 }
 
 todayBtn.onclick=moveToToday;
-for(let h=6;h<=22.5;h+=0.5){
+for(let h=6;h<=22;h++){
  let r=document.createElement('div');
  r.className='hour';
  let time=document.createElement('div');
@@ -929,7 +929,7 @@ function renderMobileAgenda(){
   day.append(allDayZone);
 
   const timeline=document.createElement('div');
-  for(let hour=6;hour<=22.5;hour+=0.5){
+  for(let hour=6;hour<=22;hour++){
    const row=document.createElement('div');
    row.className='hour';
    row.dataset.date=dateKey;
@@ -992,9 +992,9 @@ function timeToMinutes(time){
 function taskOccupiesHour(task,hour){
  const start=timeToMinutes(task.time);
  const end=task.endTime?timeToMinutes(task.endTime):start+60;
- if(end<=start)return hour===Math.floor(start/30)/2;
+ if(end<=start)return hour===Math.floor(start/60);
  const slotStart=hour*60;
- return slotStart<end&&slotStart+30>start;
+ return slotStart<end&&slotStart+60>start;
 }
 
 function minutesToTime(minutes){
@@ -1191,7 +1191,7 @@ document.addEventListener('contextmenu',event=>{
 function renderTimeline(){
  document.querySelectorAll('.slot').forEach(slot=>slot.replaceChildren());
  tasks.filter(x=>x.date===key(sel)&&x.time!=null).sort(compareTaskStartTimes).forEach(task=>{
-  for(let hour=6;hour<=22.5;hour+=0.5){
+  for(let hour=6;hour<=22;hour++){
    if(!taskOccupiesHour(task,hour))continue;
    const slot=document.querySelector(`.day-panel .slot[data-hour="${hour}"]`);
    if(slot){
@@ -1390,7 +1390,7 @@ function updateMinutesUntil(){
 
 function updateCurrentHourLabels(now=new Date()){
  const todayKey=key(now);
- const currentHour=now.getHours()+(now.getMinutes()>=30?0.5:0);
+ const currentHour=now.getHours();
  document.querySelectorAll('.day-panel .hour').forEach(row=>{
   const hour=Number(row.querySelector('.slot')?.dataset.hour);
   row.querySelector('.time')?.classList.toggle('current-hour',key(sel)===todayKey&&hour===currentHour);

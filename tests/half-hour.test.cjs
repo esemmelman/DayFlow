@@ -15,13 +15,13 @@ test('half-hour slot labels and editor values preserve minutes',()=>{
  assert.equal(app.formatTime(12.5),'12:30 PM');
  assert.equal(app.toTimeValue(6.5),'06:30');
 });
-test('appointment appears only in half-hours it overlaps',()=>{
+test('appointment appears in each hourly row it overlaps',()=>{
  const app=setup();const task={time:'06:30',endTime:'07:00'};
- assert.equal(app.taskOccupiesHour(task,6),false);
- assert.equal(app.taskOccupiesHour(task,6.5),true);
+ assert.equal(app.taskOccupiesHour(task,6),true);
+
  assert.equal(app.taskOccupiesHour(task,7),false);
  const across={time:'06:45',endTime:'07:15'};
- assert.equal(app.taskOccupiesHour(across,6.5),true);
+ assert.equal(app.taskOccupiesHour(across,6),true);
  assert.equal(app.taskOccupiesHour(across,7),true);
 });
 test('dragging into a half-hour preserves appointment duration',()=>{
