@@ -1,8 +1,8 @@
 // TEST
 
-// DayFlow v0.8-m96
+// DayFlow v0.8-m98
 
-const DAYFLOW_VERSION='v0.8-m96';
+const DAYFLOW_VERSION='v0.8-m98';
 document.title=`DayFlow ${DAYFLOW_VERSION}`;
 document.querySelector('.version').textContent=DAYFLOW_VERSION;
 
@@ -32,7 +32,7 @@ function deduplicateSeededTimeSlots(){
  const originalCount=tasks.length;
  tasks=tasks.filter(task=>{
   const normalizedTitle=task.title.trim().toLocaleLowerCase();
-  if(!deduplicatedTitles.has(normalizedTitle)||!task.date)return true;
+  if(isWeeklyOccurrence(task)||!deduplicatedTitles.has(normalizedTitle)||!task.date)return true;
   const slot=`${normalizedTitle}|${task.date}|${task.time??'all-day'}`;
   if(occupiedSlots.has(slot))return false;
   occupiedSlots.add(slot);
@@ -1301,6 +1301,11 @@ const appointmentEditor=document.getElementById('appointmentEditor');
 const appointmentForm=document.getElementById('appointmentForm');
 const editorTaskTitle=document.getElementById('editorTaskTitle');
 const editorDate=document.getElementById('editorDate');
+const editorWeeklyOption=document.getElementById('editorWeeklyOption');
+const editorWeekly=document.getElementById('editorWeekly');
+const editorWeeklyLabel=document.getElementById('editorWeeklyLabel');
+const editorRepeatThroughField=document.getElementById('editorRepeatThroughField');
+const editorRepeatThrough=document.getElementById('editorRepeatThrough');
 const editorAllDay=document.getElementById('editorAllDay');
 const editorStartTime=document.getElementById('editorStartTime');
 const editorEndTime=document.getElementById('editorEndTime');
@@ -1350,6 +1355,33 @@ function toDateKey(dateValue){
  if(!dateValue)return null;
  const [year,month,day]=dateValue.split('-').map(Number);
  return `${year}-${month}-${day}`;
+}
+
+function isWeeklyOccurrence(task){
+ return String(task.id).startsWith('weekly:');
+}
+
+function weeklyDates(start,through){
+ const dates=[];
+ const date=new Date(start+'T12:00:00');
+ const end=new Date(through+'T12:00:00');
+ date.setDate(date.getDate()+7);
+ while(date<=end){
+  dates.push(key(date));
+  date.setDate(date.getDate()+7);
+ }
+ return dates;
+}
+
+function updateEditorRecurrenceFields(){
+ const date=editorDate.value;
+ const existing=tasks.find(task=>task.id===editingAppointmentId);
+ editorWeeklyOption.hidden=!date||Boolean(existing&&isWeeklyOccurrence(existing));
+ const weekday=date?new Date(date+'T12:00:00').toLocaleDateString(undefined,{weekday:'long'}):'';
+ editorWeeklyLabel.textContent=date?`Repeat every ${weekday}`:'Repeat weekly';
+ const repeating=!editorWeeklyOption.hidden&&editorWeekly.checked;
+ editorRepeatThroughField.hidden=!repeating;
+ editorRepeatThrough.disabled=!repeating;
 }
 
 function toTimeValue(time){
@@ -1436,6 +1468,9 @@ function openAppointmentEditor(task=null,defaults={}){
  const selectedTime=task?.time??defaults.time??null;
  editorTaskTitle.value=task?.title??defaults.title??'';
  editorDate.value=toDateInput(task?.date??defaults.date??null);
+ editorWeekly.checked=false;
+ editorRepeatThrough.value='';
+ updateEditorRecurrenceFields();
  editorAllDay.checked=task?Boolean(task.date)&&task.time===null:Boolean(defaults.allDay);
  editorStartTime.value=toTimeValue(selectedTime);
  editorEndTime.value=task?.endTime??defaults.endTime??defaultEndTime(selectedTime);
@@ -1446,6 +1481,7 @@ function openAppointmentEditor(task=null,defaults={}){
  renderNoteLinks();
  editorColor.value=task?.color??'#2f80ed';
  editorDelete.hidden=!task;
+ editorDelete.textContent=task&&isWeeklyOccurrence(task)?'Delete occurrence':'Delete';
  editorError.textContent='';
  updateEditorTimeFields();
  appointmentEditor.hidden=false;
@@ -1498,7 +1534,17 @@ appointmentForm.addEventListener('submit',event=>{
  if(reminderEnabled&&!appointment.reminderEmail){editorError.textContent='Choose email for this reminder.';return;}
  if(reminderEnabled&&!currentUser){editorError.textContent='Connect your DayFlow account before enabling reminders.';return;}
  const existing=tasks.find(task=>task.id===editingAppointmentId);
- if(existing)Object.assign(existing,appointment);
+ if(!editorRepeatThrough.disabled){
+  const dates=weeklyDates(editorDate.value,editorRepeatThrough.value);
+  if(!dates.length){editorError.textContent='Choose a repeat-through date that includes at least one more occurrence.';return;}
+  const seriesId=crypto.randomUUID();
+  if(existing)Object.assign(existing,appointment,{id:`weekly:${seriesId}:${date}`});
+  else tasks.push({id:`weekly:${seriesId}:${date}`,...appointment});
+  for(const occurrenceDate of dates){
+   tasks.push({id:`weekly:${seriesId}:${occurrenceDate}`,...appointment,date:occurrenceDate});
+  }
+ }
+ else if(existing)Object.assign(existing,appointment);
  else tasks.push({id:String(Date.now()+Math.random()),...appointment});
  if(clearInboxAfterSave)newTask.value='';
  closeAppointmentEditor();
@@ -1507,7 +1553,9 @@ appointmentForm.addEventListener('submit',event=>{
 
 async function confirmTaskDeletion(taskId){
  const task=tasks.find(task=>task.id===taskId);
- if(!task||!await requestConfirmation(`Delete "${task.title}"? This cannot be undone.`))return false;
+ if(!task)return false;
+ const target=isWeeklyOccurrence(task)?`this occurrence of "${task.title}"`:`"${task.title}"`;
+ if(!await requestConfirmation(`Delete ${target}? This cannot be undone.`))return false;
  const index=tasks.findIndex(task=>task.id===taskId);
  if(index<0)return false;
  tasks.splice(index,1);
@@ -1521,7 +1569,8 @@ editorDelete.onclick=async()=>{
 };
 
 editorAllDay.onchange=updateEditorTimeFields;
-editorDate.onchange=updateEditorTimeFields;
+editorDate.onchange=()=>{updateEditorTimeFields();updateEditorRecurrenceFields();};
+editorWeekly.onchange=updateEditorRecurrenceFields;
 editorStartTime.onchange=updateEditorTimeFields;
 editorReminderEnabled.onchange=updateEditorTimeFields;
 appointmentEditor.querySelectorAll('[data-editor-cancel]').forEach(button=>button.onclick=closeAppointmentEditor);
